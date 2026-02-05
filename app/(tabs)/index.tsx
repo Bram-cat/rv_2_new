@@ -1,7 +1,18 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  MicrophoneIcon,
+  DocumentTextIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  StarIcon,
+  TrashIcon,
+  LightBulbIcon,
+  SpeakerWaveIcon,
+  PauseIcon,
+  SparklesIcon,
+} from "react-native-heroicons/outline";
 
 import { useStorage } from "../../src/hooks/useStorage";
 import { useProgressStats } from "../../src/hooks/useProgressStats";
@@ -10,35 +21,46 @@ import { LoadingSpinner } from "../../src/components/ui/LoadingSpinner";
 
 // Feature card component
 function FeatureCard({
-  iconName,
+  icon: Icon,
   title,
   description,
   onPress,
+  accentColor = "#ffb703",
 }: {
-  iconName: keyof typeof Ionicons.glyphMap;
+  icon: React.ComponentType<{ size: number; color: string }>;
   title: string;
   description: string;
   onPress: () => void;
+  accentColor?: string;
 }) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="bg-background-card rounded-2xl p-5 mb-4 border border-secondary-light"
+      className="bg-background-card rounded-2xl p-5 mb-4 border border-secondary/20"
       activeOpacity={0.7}
     >
       <View className="flex-row items-center">
-        <View className="bg-primary-light w-12 h-12 rounded-full items-center justify-center mr-4">
-          <Ionicons name={iconName} size={24} color="#006d77" />
+        <View
+          className="w-12 h-12 rounded-full items-center justify-center mr-4"
+          style={{ backgroundColor: accentColor + "20" }}
+        >
+          <Icon size={24} color={accentColor} />
         </View>
         <View className="flex-1">
-          <Text className="text-lg font-semibold text-primary-dark">
+          <Text
+            className="text-lg text-white"
+            style={{ fontFamily: "CabinetGrotesk-Medium" }}
+          >
             {title}
           </Text>
-          <Text className="text-sm text-secondary-dark mt-1">
+          <Text
+            className="text-sm text-secondary-light mt-1"
+            style={{ fontFamily: "CabinetGrotesk-Light" }}
+          >
             {description}
           </Text>
         </View>
-        <Ionicons name="chevron-forward-outline" size={20} color="#83c5be" />
+        <ChevronRightIcon size={20} color="#8ecae6" />
       </View>
     </TouchableOpacity>
   );
@@ -46,19 +68,29 @@ function FeatureCard({
 
 // Stats card component
 function StatsCard({
-  iconName,
+  icon: Icon,
   value,
   label,
+  color = "#ffb703",
 }: {
-  iconName: keyof typeof Ionicons.glyphMap;
+  icon: React.ComponentType<{ size: number; color: string }>;
   value: string;
   label: string;
+  color?: string;
 }) {
   return (
-    <View className="bg-background-card rounded-xl p-4 flex-1 items-center border border-secondary-light">
-      <Ionicons name={iconName} size={24} color="#006d77" />
-      <Text className="text-2xl font-bold text-primary-dark mt-2">{value}</Text>
-      <Text className="text-xs text-secondary-dark text-center mt-1">
+    <View className="bg-background-card rounded-xl p-4 flex-1 items-center border border-secondary/20">
+      <Icon size={24} color={color} />
+      <Text
+        className="text-2xl text-white mt-2"
+        style={{ fontFamily: "CabinetGrotesk-Bold" }}
+      >
+        {value}
+      </Text>
+      <Text
+        className="text-xs text-secondary-light text-center mt-1"
+        style={{ fontFamily: "CabinetGrotesk-Light" }}
+      >
         {label}
       </Text>
     </View>
@@ -113,10 +145,19 @@ export default function HomeScreen() {
       >
         {/* Header */}
         <View className="px-6 pt-6 pb-4">
-          <Text className="text-3xl font-bold text-primary-dark">
-            Speech Coach
-          </Text>
-          <Text className="text-secondary-dark mt-1">
+          <View className="flex-row items-center mb-2">
+            <SparklesIcon size={28} color="#ffb703" />
+            <Text
+              className="text-3xl text-white ml-2"
+              style={{ fontFamily: "CabinetGrotesk-Bold" }}
+            >
+              Speech Coach
+            </Text>
+          </View>
+          <Text
+            className="text-secondary-light"
+            style={{ fontFamily: "CabinetGrotesk-Light" }}
+          >
             Improve your presentation skills
           </Text>
         </View>
@@ -125,57 +166,73 @@ export default function HomeScreen() {
         <View className="px-6 mb-6">
           <View className="flex-row gap-3">
             <StatsCard
-              iconName="mic-outline"
+              icon={MicrophoneIcon}
               value={totalSessions.toString()}
               label="Sessions"
+              color="#ffb703"
             />
             <StatsCard
-              iconName="time-outline"
+              icon={ClockIcon}
               value={`${totalMinutes}m`}
               label="Practiced"
+              color="#219ebc"
             />
             <StatsCard
-              iconName="star-outline"
+              icon={StarIcon}
               value={averageScore > 0 ? `${averageScore}%` : "-"}
               label="Avg Score"
+              color="#fb8500"
             />
           </View>
         </View>
 
         {/* Quick Actions */}
         <View className="px-6 mb-6">
-          <Text className="text-lg font-semibold text-primary-dark mb-3">
+          <Text
+            className="text-lg text-white mb-3"
+            style={{ fontFamily: "CabinetGrotesk-Medium" }}
+          >
             Quick Actions
           </Text>
           <FeatureCard
-            iconName="mic-outline"
+            icon={MicrophoneIcon}
             title="Start Recording"
             description="Practice your speech and get AI feedback"
             onPress={() => router.push("/(tabs)/record")}
+            accentColor="#ffb703"
           />
           <FeatureCard
-            iconName="document-text-outline"
-            title="Analyze PPT"
+            icon={DocumentTextIcon}
+            title="Analyze Slides"
             description="Get feedback on your presentation slides"
             onPress={() => router.push("/(tabs)/ppt-analyzer")}
+            accentColor="#219ebc"
           />
         </View>
 
         {/* Recent Sessions */}
         <View className="px-6">
           <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-lg font-semibold text-primary-dark">
+            <Text
+              className="text-lg text-white"
+              style={{ fontFamily: "CabinetGrotesk-Medium" }}
+            >
               Recent Sessions
             </Text>
             <View className="flex-row gap-3">
               {sessions.length > 0 && (
                 <TouchableOpacity onPress={handleClearHistory}>
-                  <Ionicons name="trash-outline" size={20} color="#e29578" />
+                  <TrashIcon size={20} color="#fb8500" />
                 </TouchableOpacity>
               )}
               {sessions.length > 3 && (
                 <TouchableOpacity onPress={() => router.push("/history")}>
-                  <Text className="text-primary font-medium">View All</Text>
+                  <Text
+                    className="text-accent"
+                    style={{ fontFamily: "CabinetGrotesk-Medium" }}
+                  >
+                    View All
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -190,12 +247,18 @@ export default function HomeScreen() {
               maxItems={3}
             />
           ) : (
-            <View className="bg-background-card rounded-2xl p-6 items-center border border-secondary-light">
-              <Ionicons name="recording-outline" size={48} color="#83c5be" />
-              <Text className="text-primary-dark font-medium mt-4 text-center">
+            <View className="bg-background-card rounded-2xl p-6 items-center border border-secondary/20">
+              <MicrophoneIcon size={48} color="#8ecae6" />
+              <Text
+                className="text-white mt-4 text-center"
+                style={{ fontFamily: "CabinetGrotesk-Medium" }}
+              >
                 No recordings yet
               </Text>
-              <Text className="text-secondary-dark text-center mt-1 text-sm">
+              <Text
+                className="text-secondary-light text-center mt-1 text-sm"
+                style={{ fontFamily: "CabinetGrotesk-Light" }}
+              >
                 Start your first practice session to see your progress
               </Text>
             </View>
@@ -204,29 +267,37 @@ export default function HomeScreen() {
 
         {/* Tips Section */}
         <View className="px-6 mt-6">
-          <Text className="text-lg font-semibold text-primary-dark mb-3">
+          <Text
+            className="text-lg text-white mb-3"
+            style={{ fontFamily: "CabinetGrotesk-Medium" }}
+          >
             Quick Tips
           </Text>
-          <View className="bg-primary-light rounded-2xl p-5">
+          <View className="bg-background-card rounded-2xl p-5 border border-secondary/20">
             <View className="flex-row items-start mb-3">
-              <Ionicons name="bulb-outline" size={20} color="#006d77" />
-              <Text className="text-primary-dark ml-3 flex-1">
+              <LightBulbIcon size={20} color="#ffb703" />
+              <Text
+                className="text-secondary-light ml-3 flex-1"
+                style={{ fontFamily: "CabinetGrotesk-Light" }}
+              >
                 Speak at 120-160 words per minute for optimal clarity
               </Text>
             </View>
             <View className="flex-row items-start mb-3">
-              <Ionicons
-                name="volume-medium-outline"
-                size={20}
-                color="#006d77"
-              />
-              <Text className="text-primary-dark ml-3 flex-1">
+              <SpeakerWaveIcon size={20} color="#219ebc" />
+              <Text
+                className="text-secondary-light ml-3 flex-1"
+                style={{ fontFamily: "CabinetGrotesk-Light" }}
+              >
                 Avoid filler words like "um", "uh", and "like"
               </Text>
             </View>
             <View className="flex-row items-start">
-              <Ionicons name="pause-outline" size={20} color="#006d77" />
-              <Text className="text-primary-dark ml-3 flex-1">
+              <PauseIcon size={20} color="#fb8500" />
+              <Text
+                className="text-secondary-light ml-3 flex-1"
+                style={{ fontFamily: "CabinetGrotesk-Light" }}
+              >
                 Use strategic pauses to emphasize key points
               </Text>
             </View>

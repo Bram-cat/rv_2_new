@@ -12,10 +12,14 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    "Satoshi-Regular": require("../Satoshi_Complete/Fonts/TTF/Satoshi-Variable.ttf"),
-    "Satoshi-Medium": require("../Satoshi_Complete/Fonts/OTF/Satoshi-Medium.otf"),
-    "Satoshi-Bold": require("../Satoshi_Complete/Fonts/OTF/Satoshi-Bold.otf"),
-    "Satoshi-Light": require("../Satoshi_Complete/Fonts/OTF/Satoshi-Light.otf"),
+    "CabinetGrotesk-Thin": require("../CabinetGrotesk_Complete/Fonts/OTF/CabinetGrotesk-Thin.otf"),
+    "CabinetGrotesk-Extralight": require("../CabinetGrotesk_Complete/Fonts/OTF/CabinetGrotesk-Extralight.otf"),
+    "CabinetGrotesk-Light": require("../CabinetGrotesk_Complete/Fonts/OTF/CabinetGrotesk-Light.otf"),
+    "CabinetGrotesk-Regular": require("../CabinetGrotesk_Complete/Fonts/OTF/CabinetGrotesk-Regular.otf"),
+    "CabinetGrotesk-Medium": require("../CabinetGrotesk_Complete/Fonts/OTF/CabinetGrotesk-Medium.otf"),
+    "CabinetGrotesk-Bold": require("../CabinetGrotesk_Complete/Fonts/OTF/CabinetGrotesk-Bold.otf"),
+    "CabinetGrotesk-Extrabold": require("../CabinetGrotesk_Complete/Fonts/OTF/CabinetGrotesk-Extrabold.otf"),
+    "CabinetGrotesk-Black": require("../CabinetGrotesk_Complete/Fonts/OTF/CabinetGrotesk-Black.otf"),
   });
 
   useEffect(() => {
@@ -26,9 +30,9 @@ export default function RootLayout() {
 
   if (!fontsLoaded && !fontError) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#edf6f9" }}>
-        <ActivityIndicator size="large" color="#006d77" />
-        <Text style={{ marginTop: 16, color: "#006d77" }}>Loading...</Text>
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#023047" }}>
+        <ActivityIndicator size="large" color="#ffb703" />
+        <Text style={{ marginTop: 16, color: "#8ecae6" }}>Loading...</Text>
       </View>
     );
   }
@@ -36,15 +40,15 @@ export default function RootLayout() {
   return (
     <View style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar style="dark" />
+        <StatusBar style="light" />
         <Stack
           screenOptions={{
             headerStyle: {
-              backgroundColor: "#006d77",
+              backgroundColor: "#023047",
             },
             headerTintColor: "#ffffff",
             headerTitleStyle: {
-              fontFamily: "Satoshi-Bold",
+              fontFamily: "CabinetGrotesk-Bold",
               fontWeight: "600",
             },
           }}

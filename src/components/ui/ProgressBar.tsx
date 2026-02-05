@@ -1,7 +1,8 @@
 import { View, Text } from "react-native";
 
 interface ProgressBarProps {
-  value: number; // 0-100
+  value?: number; // 0-100
+  progress?: number; // alias for value
   label?: string;
   showPercentage?: boolean;
   color?: "blue" | "green" | "yellow" | "red" | "purple";
@@ -10,45 +11,70 @@ interface ProgressBarProps {
 
 export function ProgressBar({
   value,
+  progress,
   label,
   showPercentage = true,
   color = "blue",
   size = "medium",
 }: ProgressBarProps) {
   const colorStyles = {
-    blue: "bg-primary-600",
-    green: "bg-green-500",
-    yellow: "bg-yellow-500",
-    red: "bg-red-500",
-    purple: "bg-purple-500",
+    blue: "#219ebc",
+    green: "#22c55e",
+    yellow: "#ffb703",
+    red: "#fb8500",
+    purple: "#a855f7",
   };
 
   const sizeStyles = {
-    small: "h-1",
-    medium: "h-2",
-    large: "h-3",
+    small: 4,
+    medium: 8,
+    large: 12,
   };
 
-  const clampedValue = Math.min(100, Math.max(0, value));
+  const actualValue = value ?? progress ?? 0;
+  const clampedValue = Math.min(100, Math.max(0, actualValue));
 
   return (
     <View className="w-full">
       {(label || showPercentage) && (
         <View className="flex-row justify-between mb-1">
-          {label && <Text className="text-sm text-gray-600">{label}</Text>}
+          {label && (
+            <Text
+              className="text-sm"
+              style={{
+                fontFamily: "CabinetGrotesk-Light",
+                color: "#8ecae6",
+              }}
+            >
+              {label}
+            </Text>
+          )}
           {showPercentage && (
-            <Text className="text-sm font-semibold text-gray-800">
+            <Text
+              className="text-sm"
+              style={{
+                fontFamily: "CabinetGrotesk-Medium",
+                color: "#ffffff",
+              }}
+            >
               {Math.round(clampedValue)}%
             </Text>
           )}
         </View>
       )}
       <View
-        className={`bg-gray-200 rounded-full overflow-hidden ${sizeStyles[size]}`}
+        className="rounded-full overflow-hidden"
+        style={{
+          backgroundColor: "#011627",
+          height: sizeStyles[size],
+        }}
       >
         <View
-          className={`h-full ${colorStyles[color]} rounded-full`}
-          style={{ width: `${clampedValue}%` }}
+          className="h-full rounded-full"
+          style={{
+            width: `${clampedValue}%`,
+            backgroundColor: colorStyles[color],
+          }}
         />
       </View>
     </View>

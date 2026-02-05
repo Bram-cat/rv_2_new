@@ -8,44 +8,55 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Custom color palette from coolors.co
+        // New color palette from coolors.co
+        // #8ecae6, #219ebc, #023047, #ffb703, #fb8500
         primary: {
-          DEFAULT: '#006d77',
-          dark: '#005a63',
-          light: '#83c5be',
+          DEFAULT: '#023047',  // Dark navy - main background
+          light: '#034569',
+          dark: '#011627',
         },
         secondary: {
-          DEFAULT: '#83c5be',
-          dark: '#6bb3ab',
-          light: '#a8d8d3',
+          DEFAULT: '#219ebc',  // Medium blue
+          light: '#8ecae6',    // Light blue
+          dark: '#1a7a91',
         },
         background: {
-          DEFAULT: '#edf6f9',
-          dark: '#d4e8ed',
-          card: '#ffffff',
+          DEFAULT: '#023047',  // Dark navy background
+          dark: '#011627',
+          card: '#034569',
+          light: '#8ecae6',
         },
         accent: {
-          DEFAULT: '#e29578',
-          light: '#ffddd2',
-          dark: '#c77a5e',
+          DEFAULT: '#ffb703',  // Golden yellow
+          light: '#ffc933',
+          dark: '#cc9200',
+        },
+        orange: {
+          DEFAULT: '#fb8500',  // Orange
+          light: '#fc9d33',
+          dark: '#c96a00',
+        },
+        blue: {
+          light: '#8ecae6',    // Light blue
+          medium: '#219ebc',   // Medium blue
+          dark: '#023047',     // Dark navy
         },
         // Semantic colors
-        teal: {
-          900: '#006d77',
-          700: '#008b8b',
-          500: '#83c5be',
-          300: '#a8d8d3',
-          100: '#d4ebe8',
+        text: {
+          primary: '#ffffff',
+          secondary: '#8ecae6',
+          muted: '#6bb8d4',
         },
-        peach: {
-          100: '#ffddd2',
-          300: '#ffcab8',
-          500: '#e29578',
-          700: '#c77a5e',
-        },
+        success: '#22c55e',
+        error: '#ef4444',
+        warning: '#ffb703',
       },
       fontFamily: {
-        satoshi: ['Satoshi', 'sans-serif'],
+        cabinet: ['CabinetGrotesk', 'sans-serif'],
+        'cabinet-light': ['CabinetGrotesk-Light', 'sans-serif'],
+        'cabinet-regular': ['CabinetGrotesk-Regular', 'sans-serif'],
+        'cabinet-medium': ['CabinetGrotesk-Medium', 'sans-serif'],
+        'cabinet-bold': ['CabinetGrotesk-Bold', 'sans-serif'],
       },
     },
   },

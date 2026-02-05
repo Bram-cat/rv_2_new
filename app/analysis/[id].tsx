@@ -2,7 +2,20 @@ import { View, Text, ScrollView, Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  DocumentTextIcon,
+  ExclamationCircleIcon,
+  MicrophoneIcon,
+  SparklesIcon,
+  StarIcon,
+  ArrowTrendingUpIcon,
+  LightBulbIcon,
+  ChatBubbleLeftEllipsisIcon,
+  PencilSquareIcon,
+  InformationCircleIcon,
+  TrophyIcon,
+  ChartBarIcon,
+} from "react-native-heroicons/outline";
 
 import { useTranscription } from "../../src/hooks/useTranscription";
 import { useSpeechAnalysis, analyzeSpeech } from "../../src/hooks/useSpeechAnalysis";
@@ -201,8 +214,11 @@ export default function AnalysisScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
         <View className="flex-1 items-center justify-center">
-          <View className="bg-primary w-20 h-20 rounded-full items-center justify-center mb-6">
-            <Ionicons name="document-text-outline" size={40} color="#ffffff" />
+          <View
+            className="w-20 h-20 rounded-full items-center justify-center mb-6"
+            style={{ backgroundColor: "#ffb703" }}
+          >
+            <DocumentTextIcon size={40} color="#023047" />
           </View>
           <LoadingSpinner message="Loading session..." />
         </View>
@@ -215,18 +231,21 @@ export default function AnalysisScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
         <View className="flex-1 items-center justify-center px-6">
-          <View className="bg-accent-light w-20 h-20 rounded-full items-center justify-center mb-4">
-            <Ionicons name="alert-circle-outline" size={40} color="#e29578" />
+          <View
+            className="w-20 h-20 rounded-full items-center justify-center mb-4"
+            style={{ backgroundColor: "#fb850030" }}
+          >
+            <ExclamationCircleIcon size={40} color="#fb8500" />
           </View>
           <Text
-            className="text-xl text-primary-dark mb-2"
-            style={{ fontFamily: "Satoshi-Bold" }}
+            className="text-xl text-white mb-2"
+            style={{ fontFamily: "CabinetGrotesk-Bold" }}
           >
             Session Not Found
           </Text>
           <Text
-            className="text-secondary-dark text-center mb-6"
-            style={{ fontFamily: "Satoshi-Regular" }}
+            className="text-secondary-light text-center mb-6"
+            style={{ fontFamily: "CabinetGrotesk-Light" }}
           >
             This recording session could not be found.
           </Text>
@@ -241,8 +260,11 @@ export default function AnalysisScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
         <View className="flex-1 items-center justify-center px-6">
-          <View className="bg-secondary w-20 h-20 rounded-full items-center justify-center mb-6">
-            <Ionicons name="mic-outline" size={40} color="#ffffff" />
+          <View
+            className="w-20 h-20 rounded-full items-center justify-center mb-6"
+            style={{ backgroundColor: "#219ebc" }}
+          >
+            <MicrophoneIcon size={40} color="#ffffff" />
           </View>
           <LoadingSpinner
             message={
@@ -252,8 +274,11 @@ export default function AnalysisScreen() {
             }
           />
           <Text
-            className="text-secondary-dark text-sm mt-4 text-center"
-            style={{ fontFamily: "Satoshi-Regular" }}
+            className="text-sm mt-4 text-center"
+            style={{
+              fontFamily: "CabinetGrotesk-Light",
+              color: "#8ecae6",
+            }}
           >
             This may take a moment depending on the recording length
           </Text>
@@ -267,18 +292,21 @@ export default function AnalysisScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
         <View className="flex-1 items-center justify-center px-6">
-          <View className="bg-accent-light w-20 h-20 rounded-full items-center justify-center mb-4">
-            <Ionicons name="sad-outline" size={40} color="#e29578" />
+          <View
+            className="w-20 h-20 rounded-full items-center justify-center mb-4"
+            style={{ backgroundColor: "#fb850030" }}
+          >
+            <ExclamationCircleIcon size={40} color="#fb8500" />
           </View>
           <Text
-            className="text-xl text-primary-dark mb-2"
-            style={{ fontFamily: "Satoshi-Bold" }}
+            className="text-xl text-white mb-2"
+            style={{ fontFamily: "CabinetGrotesk-Bold" }}
           >
             Analysis Failed
           </Text>
           <Text
-            className="text-secondary-dark text-center mb-6"
-            style={{ fontFamily: "Satoshi-Regular" }}
+            className="text-secondary-light text-center mb-6"
+            style={{ fontFamily: "CabinetGrotesk-Light" }}
           >
             {transcriptionError}
           </Text>
@@ -304,18 +332,21 @@ export default function AnalysisScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
         <View className="flex-1 items-center justify-center px-6">
-          <View className="bg-secondary-light w-20 h-20 rounded-full items-center justify-center mb-4">
-            <Ionicons name="analytics-outline" size={40} color="#006d77" />
+          <View
+            className="w-20 h-20 rounded-full items-center justify-center mb-4"
+            style={{ backgroundColor: "#219ebc30" }}
+          >
+            <ChartBarIcon size={40} color="#219ebc" />
           </View>
           <Text
-            className="text-xl text-primary-dark mb-2"
-            style={{ fontFamily: "Satoshi-Bold" }}
+            className="text-xl text-white mb-2"
+            style={{ fontFamily: "CabinetGrotesk-Bold" }}
           >
             No Analysis Available
           </Text>
           <Text
-            className="text-secondary-dark text-center mb-6"
-            style={{ fontFamily: "Satoshi-Regular" }}
+            className="text-secondary-light text-center mb-6"
+            style={{ fontFamily: "CabinetGrotesk-Light" }}
           >
             {isConfigured
               ? "Unable to analyze this recording."
@@ -337,14 +368,17 @@ export default function AnalysisScreen() {
       >
         <View className="px-6 pt-4">
           {/* AI Coach Feedback Section */}
-          <View className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary">
+          <View className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary/20">
             <View className="flex-row items-center mb-4">
-              <View className="bg-primary w-10 h-10 rounded-full items-center justify-center">
-                <Ionicons name="sparkles" size={20} color="#ffffff" />
+              <View
+                className="w-10 h-10 rounded-full items-center justify-center"
+                style={{ backgroundColor: "#ffb703" }}
+              >
+                <SparklesIcon size={20} color="#023047" />
               </View>
               <Text
-                className="text-lg text-primary-dark ml-3"
-                style={{ fontFamily: "Satoshi-Bold" }}
+                className="text-lg text-white ml-3"
+                style={{ fontFamily: "CabinetGrotesk-Bold" }}
               >
                 AI Coach Feedback
               </Text>
@@ -357,10 +391,16 @@ export default function AnalysisScreen() {
             )}
 
             {aiError && !aiFeedback && (
-              <View className="bg-accent-light p-4 rounded-lg">
+              <View
+                className="p-4 rounded-lg"
+                style={{ backgroundColor: "#fb850030" }}
+              >
                 <Text
-                  className="text-accent-dark mb-2"
-                  style={{ fontFamily: "Satoshi-Regular" }}
+                  className="mb-2"
+                  style={{
+                    fontFamily: "CabinetGrotesk-Regular",
+                    color: "#fb8500",
+                  }}
                 >
                   {aiError}
                 </Text>
@@ -371,33 +411,113 @@ export default function AnalysisScreen() {
             {aiFeedback && (
               <View>
                 {/* AI Score */}
-                <View className="flex-row justify-between mb-4 bg-background p-4 rounded-xl">
+                <View
+                  className="flex-row justify-between mb-4 p-4 rounded-xl"
+                  style={{ backgroundColor: "#011627" }}
+                >
                   <View className="flex-1 items-center">
                     <Text
-                      className="text-3xl text-primary"
-                      style={{ fontFamily: "Satoshi-Bold" }}
+                      className="text-3xl"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Bold",
+                        color: "#ffb703",
+                      }}
                     >
                       {aiFeedback.overallScore}/10
                     </Text>
-                    <Text className="text-secondary-dark text-xs" style={{ fontFamily: "Satoshi-Regular" }}>Overall</Text>
+                    <Text
+                      className="text-xs"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      Overall
+                    </Text>
                   </View>
-                  <View className="flex-1 items-center border-l border-secondary-light">
-                    <Text className="text-xl text-secondary" style={{ fontFamily: "Satoshi-Bold" }}>{aiFeedback.clarity}/10</Text>
-                    <Text className="text-secondary-dark text-xs" style={{ fontFamily: "Satoshi-Regular" }}>Clarity</Text>
+                  <View
+                    className="flex-1 items-center border-l"
+                    style={{ borderColor: "#034569" }}
+                  >
+                    <Text
+                      className="text-xl"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Bold",
+                        color: "#219ebc",
+                      }}
+                    >
+                      {aiFeedback.clarity}/10
+                    </Text>
+                    <Text
+                      className="text-xs"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      Clarity
+                    </Text>
                   </View>
-                  <View className="flex-1 items-center border-l border-secondary-light">
-                    <Text className="text-xl text-secondary" style={{ fontFamily: "Satoshi-Bold" }}>{aiFeedback.pace}/10</Text>
-                    <Text className="text-secondary-dark text-xs" style={{ fontFamily: "Satoshi-Regular" }}>Pace</Text>
+                  <View
+                    className="flex-1 items-center border-l"
+                    style={{ borderColor: "#034569" }}
+                  >
+                    <Text
+                      className="text-xl"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Bold",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      {aiFeedback.pace}/10
+                    </Text>
+                    <Text
+                      className="text-xs"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      Pace
+                    </Text>
                   </View>
-                  <View className="flex-1 items-center border-l border-secondary-light">
-                    <Text className="text-xl text-accent" style={{ fontFamily: "Satoshi-Bold" }}>{aiFeedback.confidence}/10</Text>
-                    <Text className="text-secondary-dark text-xs" style={{ fontFamily: "Satoshi-Regular" }}>Confidence</Text>
+                  <View
+                    className="flex-1 items-center border-l"
+                    style={{ borderColor: "#034569" }}
+                  >
+                    <Text
+                      className="text-xl"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Bold",
+                        color: "#fb8500",
+                      }}
+                    >
+                      {aiFeedback.confidence}/10
+                    </Text>
+                    <Text
+                      className="text-xs"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      Confidence
+                    </Text>
                   </View>
                 </View>
 
                 {/* Summary */}
-                <View className="bg-secondary-light p-4 rounded-lg mb-4">
-                  <Text className="text-primary-dark leading-5" style={{ fontFamily: "Satoshi-Regular" }}>
+                <View
+                  className="p-4 rounded-lg mb-4"
+                  style={{ backgroundColor: "#219ebc20" }}
+                >
+                  <Text
+                    className="leading-5"
+                    style={{
+                      fontFamily: "CabinetGrotesk-Light",
+                      color: "#8ecae6",
+                    }}
+                  >
                     {aiFeedback.summary}
                   </Text>
                 </View>
@@ -406,13 +526,32 @@ export default function AnalysisScreen() {
                 {aiFeedback.strengths.length > 0 && (
                   <View className="mb-4">
                     <View className="flex-row items-center mb-2">
-                      <Ionicons name="star" size={18} color="#006d77" />
-                      <Text className="text-primary-dark ml-2" style={{ fontFamily: "Satoshi-Bold" }}>Strengths</Text>
+                      <StarIcon size={18} color="#ffb703" />
+                      <Text
+                        className="ml-2"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#ffb703",
+                        }}
+                      >
+                        Strengths
+                      </Text>
                     </View>
                     {aiFeedback.strengths.map((s, i) => (
                       <View key={i} className="flex-row items-start ml-2 mb-1">
-                        <View className="w-2 h-2 rounded-full bg-primary mt-2 mr-2" />
-                        <Text className="text-primary-dark flex-1" style={{ fontFamily: "Satoshi-Regular" }}>{s}</Text>
+                        <View
+                          className="w-2 h-2 rounded-full mt-2 mr-2"
+                          style={{ backgroundColor: "#ffb703" }}
+                        />
+                        <Text
+                          className="flex-1"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Light",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          {s}
+                        </Text>
                       </View>
                     ))}
                   </View>
@@ -422,13 +561,32 @@ export default function AnalysisScreen() {
                 {aiFeedback.improvements.length > 0 && (
                   <View className="mb-4">
                     <View className="flex-row items-center mb-2">
-                      <Ionicons name="trending-up" size={18} color="#e29578" />
-                      <Text className="text-accent ml-2" style={{ fontFamily: "Satoshi-Bold" }}>Areas to Improve</Text>
+                      <ArrowTrendingUpIcon size={18} color="#fb8500" />
+                      <Text
+                        className="ml-2"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#fb8500",
+                        }}
+                      >
+                        Areas to Improve
+                      </Text>
                     </View>
                     {aiFeedback.improvements.map((s, i) => (
                       <View key={i} className="flex-row items-start ml-2 mb-1">
-                        <View className="w-2 h-2 rounded-full bg-accent mt-2 mr-2" />
-                        <Text className="text-primary-dark flex-1" style={{ fontFamily: "Satoshi-Regular" }}>{s}</Text>
+                        <View
+                          className="w-2 h-2 rounded-full mt-2 mr-2"
+                          style={{ backgroundColor: "#fb8500" }}
+                        />
+                        <Text
+                          className="flex-1"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Light",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          {s}
+                        </Text>
                       </View>
                     ))}
                   </View>
@@ -438,13 +596,32 @@ export default function AnalysisScreen() {
                 {aiFeedback.tips.length > 0 && (
                   <View className="mb-4">
                     <View className="flex-row items-center mb-2">
-                      <Ionicons name="bulb" size={18} color="#83c5be" />
-                      <Text className="text-secondary ml-2" style={{ fontFamily: "Satoshi-Bold" }}>Tips for Next Time</Text>
+                      <LightBulbIcon size={18} color="#219ebc" />
+                      <Text
+                        className="ml-2"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#219ebc",
+                        }}
+                      >
+                        Tips for Next Time
+                      </Text>
                     </View>
                     {aiFeedback.tips.map((s, i) => (
                       <View key={i} className="flex-row items-start ml-2 mb-1">
-                        <View className="w-2 h-2 rounded-full bg-secondary mt-2 mr-2" />
-                        <Text className="text-primary-dark flex-1" style={{ fontFamily: "Satoshi-Regular" }}>{s}</Text>
+                        <View
+                          className="w-2 h-2 rounded-full mt-2 mr-2"
+                          style={{ backgroundColor: "#219ebc" }}
+                        />
+                        <Text
+                          className="flex-1"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Light",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          {s}
+                        </Text>
                       </View>
                     ))}
                   </View>
@@ -452,34 +629,87 @@ export default function AnalysisScreen() {
 
                 {/* Sentence Suggestions */}
                 {aiFeedback.sentenceSuggestions && aiFeedback.sentenceSuggestions.length > 0 && (
-                  <View className="mt-4 pt-4 border-t border-secondary-light">
+                  <View
+                    className="mt-4 pt-4 border-t"
+                    style={{ borderColor: "#034569" }}
+                  >
                     <View className="flex-row items-center mb-3">
-                      <Ionicons name="create" size={18} color="#006d77" />
-                      <Text className="text-primary-dark ml-2" style={{ fontFamily: "Satoshi-Bold" }}>
+                      <PencilSquareIcon size={18} color="#8ecae6" />
+                      <Text
+                        className="ml-2"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#8ecae6",
+                        }}
+                      >
                         Better Ways to Say It
                       </Text>
                     </View>
                     {aiFeedback.sentenceSuggestions.map((suggestion, i) => (
-                      <View key={i} className="bg-background p-4 rounded-lg mb-3">
+                      <View
+                        key={i}
+                        className="p-4 rounded-lg mb-3"
+                        style={{ backgroundColor: "#011627" }}
+                      >
                         <View className="flex-row items-center mb-2">
-                          <View className="bg-accent-light px-2 py-1 rounded">
-                            <Text className="text-accent-dark text-xs" style={{ fontFamily: "Satoshi-Medium" }}>Original</Text>
+                          <View
+                            className="px-2 py-1 rounded"
+                            style={{ backgroundColor: "#fb850030" }}
+                          >
+                            <Text
+                              className="text-xs"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Medium",
+                                color: "#fb8500",
+                              }}
+                            >
+                              Original
+                            </Text>
                           </View>
                         </View>
-                        <Text className="text-secondary-dark mb-3 italic" style={{ fontFamily: "Satoshi-Regular" }}>
+                        <Text
+                          className="mb-3 italic"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Light",
+                            color: "#6bb8d4",
+                          }}
+                        >
                           "{suggestion.original}"
                         </Text>
                         <View className="flex-row items-center mb-2">
-                          <View className="bg-primary px-2 py-1 rounded">
-                            <Text className="text-white text-xs" style={{ fontFamily: "Satoshi-Medium" }}>Improved</Text>
+                          <View
+                            className="px-2 py-1 rounded"
+                            style={{ backgroundColor: "#ffb703" }}
+                          >
+                            <Text
+                              className="text-xs"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Medium",
+                                color: "#023047",
+                              }}
+                            >
+                              Improved
+                            </Text>
                           </View>
                         </View>
-                        <Text className="text-primary-dark mb-2" style={{ fontFamily: "Satoshi-Medium" }}>
+                        <Text
+                          className="mb-2"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Medium",
+                            color: "#ffffff",
+                          }}
+                        >
                           "{suggestion.improved}"
                         </Text>
                         <View className="flex-row items-start">
-                          <Ionicons name="information-circle" size={14} color="#83c5be" />
-                          <Text className="text-secondary-dark text-xs ml-1 flex-1" style={{ fontFamily: "Satoshi-Regular" }}>
+                          <InformationCircleIcon size={14} color="#219ebc" />
+                          <Text
+                            className="text-xs ml-1 flex-1"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Light",
+                              color: "#8ecae6",
+                            }}
+                          >
                             {suggestion.reason}
                           </Text>
                         </View>
@@ -490,17 +720,38 @@ export default function AnalysisScreen() {
 
                 {/* Filler Words from AI */}
                 {aiFeedback.fillerWords.length > 0 && (
-                  <View className="mt-4 pt-4 border-t border-secondary-light">
+                  <View
+                    className="mt-4 pt-4 border-t"
+                    style={{ borderColor: "#034569" }}
+                  >
                     <View className="flex-row items-center mb-2">
-                      <Ionicons name="chatbubble-ellipses" size={18} color="#e29578" />
-                      <Text className="text-accent ml-2" style={{ fontFamily: "Satoshi-Bold" }}>
+                      <ChatBubbleLeftEllipsisIcon size={18} color="#fb8500" />
+                      <Text
+                        className="ml-2"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#fb8500",
+                        }}
+                      >
                         Filler Words: {aiFeedback.fillerWordCount}
                       </Text>
                     </View>
                     <View className="flex-row flex-wrap">
                       {aiFeedback.fillerWords.map((w, i) => (
-                        <View key={i} className="bg-accent-light px-3 py-1 rounded-full mr-2 mb-2">
-                          <Text className="text-accent-dark text-sm" style={{ fontFamily: "Satoshi-Medium" }}>{w}</Text>
+                        <View
+                          key={i}
+                          className="px-3 py-1 rounded-full mr-2 mb-2"
+                          style={{ backgroundColor: "#fb850030" }}
+                        >
+                          <Text
+                            className="text-sm"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Medium",
+                              color: "#fb8500",
+                            }}
+                          >
+                            {w}
+                          </Text>
                         </View>
                       ))}
                     </View>
@@ -513,22 +764,31 @@ export default function AnalysisScreen() {
               <Button
                 title="Get AI Feedback"
                 onPress={handleRetryAI}
-                icon={<Ionicons name="sparkles-outline" size={20} color="#ffffff" />}
+                icon={<SparklesIcon size={20} color="#023047" />}
               />
             )}
           </View>
 
           {/* Challenge Score (if applicable) */}
           {session?.practiceMode === "challenge" && session?.challengeScore !== undefined && (
-            <View className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary">
+            <View className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary/20">
               <View className="flex-row items-center justify-between mb-3">
                 <View className="flex-row items-center">
-                  <Ionicons name="trophy" size={24} color="#e29578" />
-                  <Text className="text-lg text-primary-dark ml-2" style={{ fontFamily: "Satoshi-Bold" }}>
+                  <TrophyIcon size={24} color="#fb8500" />
+                  <Text
+                    className="text-lg text-white ml-2"
+                    style={{ fontFamily: "CabinetGrotesk-Bold" }}
+                  >
                     Challenge Score
                   </Text>
                 </View>
-                <Text className="text-3xl text-accent" style={{ fontFamily: "Satoshi-Bold" }}>
+                <Text
+                  className="text-3xl"
+                  style={{
+                    fontFamily: "CabinetGrotesk-Bold",
+                    color: "#fb8500",
+                  }}
+                >
                   {session.challengeScore}
                 </Text>
               </View>
@@ -537,7 +797,13 @@ export default function AnalysisScreen() {
                 color={session.challengeScore >= 70 ? "green" : session.challengeScore >= 40 ? "yellow" : "red"}
                 size="medium"
               />
-              <Text className="text-secondary-dark text-sm mt-2" style={{ fontFamily: "Satoshi-Regular" }}>
+              <Text
+                className="text-sm mt-2"
+                style={{
+                  fontFamily: "CabinetGrotesk-Light",
+                  color: "#8ecae6",
+                }}
+              >
                 {session.challengeScore >= 70 ? "Excellent! You crushed this challenge!" :
                  session.challengeScore >= 40 ? "Good effort! Keep practicing to improve." :
                  "Keep trying! Practice makes perfect."}
@@ -547,7 +813,10 @@ export default function AnalysisScreen() {
 
           {/* Metrics section */}
           <View className="mt-6">
-            <Text className="text-lg text-primary-dark mb-3" style={{ fontFamily: "Satoshi-Bold" }}>
+            <Text
+              className="text-lg text-white mb-3"
+              style={{ fontFamily: "CabinetGrotesk-Bold" }}
+            >
               Detailed Metrics
             </Text>
 
@@ -617,7 +886,10 @@ export default function AnalysisScreen() {
 
           {/* Transcript section */}
           <View className="mt-6">
-            <Text className="text-lg text-primary-dark mb-3" style={{ fontFamily: "Satoshi-Bold" }}>
+            <Text
+              className="text-lg text-white mb-3"
+              style={{ fontFamily: "CabinetGrotesk-Bold" }}
+            >
               Transcript
             </Text>
             <TranscriptView
@@ -633,7 +905,7 @@ export default function AnalysisScreen() {
               title="Record Again"
               onPress={() => router.push("/(tabs)/record")}
               size="large"
-              icon={<Ionicons name="mic-outline" size={20} color="#ffffff" />}
+              icon={<MicrophoneIcon size={20} color="#023047" />}
             />
           </View>
         </View>

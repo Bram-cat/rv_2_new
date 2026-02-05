@@ -21,29 +21,39 @@ export function Timer({
     <View className="items-center">
       {/* Main timer display */}
       <Text
-        className={`text-6xl font-bold tracking-tight ${
-          isWarning ? "text-accent-dark" : "text-primary-dark"
-        }`}
+        className="text-6xl tracking-tight"
+        style={{
+          fontFamily: "CabinetGrotesk-Bold",
+          color: isWarning ? "#fb8500" : "#ffffff",
+        }}
       >
         {formatDuration(durationMs)}
       </Text>
 
       {/* Progress bar */}
-      <View className="w-48 h-2 bg-secondary-light rounded-full mt-4 overflow-hidden">
+      <View
+        className="w-48 h-2 rounded-full mt-4 overflow-hidden"
+        style={{ backgroundColor: "#034569" }}
+      >
         <View
-          className={`h-full rounded-full ${
-            isWarning ? "bg-accent" : "bg-primary"
-          }`}
-          style={{ width: `${Math.min(100, progress)}%` }}
+          className="h-full rounded-full"
+          style={{
+            width: `${Math.min(100, progress)}%`,
+            backgroundColor: isWarning ? "#fb8500" : "#ffb703",
+          }}
         />
       </View>
 
       {/* Remaining time */}
       {showRemaining && (
         <Text
-          className={`text-sm mt-2 ${
-            isWarning ? "text-accent font-semibold" : "text-secondary-dark"
-          }`}
+          className="text-sm mt-2"
+          style={{
+            fontFamily: isWarning
+              ? "CabinetGrotesk-Medium"
+              : "CabinetGrotesk-Light",
+            color: isWarning ? "#fb8500" : "#8ecae6",
+          }}
         >
           {isWarning
             ? `${formatDuration(remaining)} remaining`

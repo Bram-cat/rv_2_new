@@ -20,9 +20,21 @@ export function TranscriptView({
   const words = text.split(/(\s+)/);
 
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-sm">
+    <View
+      className="rounded-2xl p-4 border"
+      style={{
+        backgroundColor: "#034569",
+        borderColor: "#21628830",
+      }}
+    >
       <ScrollView style={{ maxHeight }} showsVerticalScrollIndicator>
-        <Text className="text-gray-700 leading-6">
+        <Text
+          className="leading-6"
+          style={{
+            fontFamily: "CabinetGrotesk-Light",
+            color: "#8ecae6",
+          }}
+        >
           {words.map((word, index) => {
             const normalizedWord = word
               .toLowerCase()
@@ -35,7 +47,12 @@ export function TranscriptView({
               return (
                 <Text
                   key={index}
-                  className="bg-yellow-200 text-yellow-800 rounded px-0.5"
+                  className="rounded px-0.5"
+                  style={{
+                    backgroundColor: "#fb850040",
+                    color: "#fb8500",
+                    fontFamily: "CabinetGrotesk-Medium",
+                  }}
                 >
                   {word}
                 </Text>
@@ -49,9 +66,21 @@ export function TranscriptView({
 
       {/* Legend */}
       {fillerWords.length > 0 && (
-        <View className="flex-row items-center mt-3 pt-3 border-t border-gray-100">
-          <View className="w-3 h-3 bg-yellow-200 rounded mr-2" />
-          <Text className="text-xs text-gray-500">
+        <View
+          className="flex-row items-center mt-3 pt-3 border-t"
+          style={{ borderColor: "#21628830" }}
+        >
+          <View
+            className="w-3 h-3 rounded mr-2"
+            style={{ backgroundColor: "#fb850040" }}
+          />
+          <Text
+            className="text-xs"
+            style={{
+              fontFamily: "CabinetGrotesk-Light",
+              color: "#6bb8d4",
+            }}
+          >
             Highlighted words are filler words
           </Text>
         </View>

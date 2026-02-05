@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { RecordingSession } from "../../types/recording";
 import { SessionCard } from "./SessionCard";
@@ -30,7 +30,15 @@ export function SessionList({
   if (displayedSessions.length === 0) {
     return (
       <View className="items-center py-8">
-        <Text className="text-gray-500 text-center">{emptyMessage}</Text>
+        <Text
+          className="text-center"
+          style={{
+            fontFamily: "CabinetGrotesk-Light",
+            color: "#8ecae6",
+          }}
+        >
+          {emptyMessage}
+        </Text>
       </View>
     );
   }
@@ -50,12 +58,20 @@ export function SessionList({
       ))}
 
       {!showAll && sessions.length > maxItems && (
-        <Text
-          className="text-center text-primary-600 font-medium py-2"
+        <TouchableOpacity
           onPress={() => router.push("/history")}
+          className="py-2"
         >
-          View all {sessions.length} sessions →
-        </Text>
+          <Text
+            className="text-center"
+            style={{
+              fontFamily: "CabinetGrotesk-Medium",
+              color: "#ffb703",
+            }}
+          >
+            View all {sessions.length} sessions
+          </Text>
+        </TouchableOpacity>
       )}
     </View>
   );
