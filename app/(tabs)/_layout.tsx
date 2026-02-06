@@ -109,26 +109,26 @@ export default function TabLayout() {
                 <View
                   style={{
                     backgroundColor: "#ffb703",
-                    width: 64,
-                    height: 64,
-                    borderRadius: 32,
+                    width: 68,
+                    height: 68,
+                    borderRadius: 34,
                     justifyContent: "center",
                     alignItems: "center",
                     shadowColor: "#ffb703",
                     shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.4,
-                    shadowRadius: 8,
-                    elevation: 8,
+                    shadowOpacity: 0.5,
+                    shadowRadius: 12,
+                    elevation: 10,
                     borderWidth: 4,
                     borderColor: "#011627",
+                    overflow: "hidden",
                   }}
                 >
                   <Image
                     source={middleIcon}
                     style={{
-                      width: 32,
-                      height: 32,
-                      tintColor: "#023047",
+                      width: 100,
+                      height: 100,
                     }}
                     resizeMode="contain"
                   />

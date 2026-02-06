@@ -1,4 +1,11 @@
-import { View, Text, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  Modal,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,10 +22,17 @@ import {
   InformationCircleIcon,
   TrophyIcon,
   ChartBarIcon,
+  XMarkIcon,
+  CheckCircleIcon,
+  FaceSmileIcon,
+  SpeakerWaveIcon,
 } from "react-native-heroicons/outline";
 
 import { useTranscription } from "../../src/hooks/useTranscription";
-import { useSpeechAnalysis, analyzeSpeech } from "../../src/hooks/useSpeechAnalysis";
+import {
+  useSpeechAnalysis,
+  analyzeSpeech,
+} from "../../src/hooks/useSpeechAnalysis";
 import { useStorage } from "../../src/hooks/useStorage";
 import { getSession } from "../../src/services/storage/asyncStorage";
 import { RecordingSession } from "../../src/types/recording";
@@ -31,8 +45,135 @@ import { ProgressBar } from "../../src/components/ui/ProgressBar";
 
 import { SPEAKING_RATE_CONFIG } from "../../src/constants/thresholds";
 import { getTotalFillerCount } from "../../src/analysis/fillerWords";
-import { analyzeSpeechWithAI, SpeechFeedback, isOpenAIConfigured } from "../../src/services/openai/analyze";
-import { calculateChallengeScore, getChallengeById } from "../../src/constants/challenges";
+import {
+  analyzeSpeechWithAI,
+  SpeechFeedback,
+  ScoreBreakdown,
+  isOpenAIConfigured,
+} from "../../src/services/openai/analyze";
+import {
+  calculateChallengeScore,
+  getChallengeById,
+} from "../../src/constants/challenges";
+
+// Score detail modal component
+function ScoreDetailModal({
+  visible,
+  onClose,
+  breakdown,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  breakdown: ScoreBreakdown | null;
+}) {
+  if (!breakdown) return null;
+
+  const scoreColor =
+    breakdown.currentScore >= 8
+      ? "#22c55e"
+      : breakdown.currentScore >= 5
+        ? "#ffb703"
+        : "#fb8500";
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 bg-black/60 justify-end">
+        <View className="bg-primary rounded-t-3xl p-6">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text
+              className="text-xl text-white"
+              style={{ fontFamily: "CabinetGrotesk-Bold" }}
+            >
+              {breakdown.category}
+            </Text>
+            <TouchableOpacity onPress={onClose} className="p-2">
+              <XMarkIcon size={24} color="#8ecae6" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Score display */}
+          <View
+            className="items-center py-6 rounded-xl mb-4"
+            style={{ backgroundColor: "#011627" }}
+          >
+            <Text
+              className="text-5xl"
+              style={{ fontFamily: "CabinetGrotesk-Bold", color: scoreColor }}
+            >
+              {breakdown.currentScore}/{breakdown.maxScore}
+            </Text>
+          </View>
+
+          {/* What to improve */}
+          <View className="mb-4">
+            <View className="flex-row items-center mb-2">
+              <ArrowTrendingUpIcon size={18} color="#fb8500" />
+              <Text
+                className="ml-2"
+                style={{ fontFamily: "CabinetGrotesk-Bold", color: "#fb8500" }}
+              >
+                What's holding you back
+              </Text>
+            </View>
+            <View
+              className="p-4 rounded-lg"
+              style={{ backgroundColor: "#fb850015" }}
+            >
+              <Text
+                className="leading-5"
+                style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
+              >
+                {breakdown.whatToImprove}
+              </Text>
+            </View>
+          </View>
+
+          {/* How to get full marks */}
+          <View className="mb-6">
+            <View className="flex-row items-center mb-2">
+              <CheckCircleIcon size={18} color="#22c55e" />
+              <Text
+                className="ml-2"
+                style={{ fontFamily: "CabinetGrotesk-Bold", color: "#22c55e" }}
+              >
+                How to get 10/10
+              </Text>
+            </View>
+            <View
+              className="p-4 rounded-lg"
+              style={{ backgroundColor: "#22c55e15" }}
+            >
+              <Text
+                className="leading-5"
+                style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
+              >
+                {breakdown.howToGetFullMarks}
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            onPress={onClose}
+            className="py-4 items-center rounded-xl"
+            style={{ backgroundColor: "#219ebc" }}
+          >
+            <Text
+              className="text-white text-base"
+              style={{ fontFamily: "CabinetGrotesk-Bold" }}
+            >
+              Got it
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
 
 export default function AnalysisScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,6 +188,11 @@ export default function AnalysisScreen() {
   const [isAnalyzingWithAI, setIsAnalyzingWithAI] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
+  // Score detail modal
+  const [selectedBreakdown, setSelectedBreakdown] =
+    useState<ScoreBreakdown | null>(null);
+  const [showScoreDetail, setShowScoreDetail] = useState(false);
+
   // Hooks
   const {
     result: transcription,
@@ -60,58 +206,81 @@ export default function AnalysisScreen() {
   const { updateSession } = useStorage();
 
   // Compute analysis from transcription
-  const analysis = useSpeechAnalysis(transcription || session?.transcription || null);
+  const analysis = useSpeechAnalysis(
+    transcription || session?.transcription || null,
+  );
 
   // Run AI analysis when transcription is available
-  const runAIAnalysis = useCallback(async (text: string, durationSec: number) => {
-    if (!isOpenAIConfigured()) {
-      setAiError("OpenAI not configured. Add EXPO_PUBLIC_OPENAI_API_KEY to .env");
-      return;
-    }
-
-    setIsAnalyzingWithAI(true);
-    setAiError(null);
-
-    try {
-      const feedback = await analyzeSpeechWithAI(text, durationSec);
-      setAiFeedback(feedback);
-
-      // Save AI feedback to session
-      if (id) {
-        const updates: Partial<RecordingSession> = { aiFeedback: feedback };
-
-        // If this is a challenge session, calculate the challenge score
-        if (session?.practiceMode === "challenge" && session?.challengeType) {
-          const challenge = getChallengeById(session.challengeType);
-          if (challenge) {
-            let actualValue = 0;
-            switch (challenge.scoringMetric) {
-              case "fillerRatio":
-                actualValue = (feedback.fillerWordCount || 0) / Math.max(text.split(/\s+/).length, 1);
-                break;
-              case "clarity":
-                actualValue = feedback.clarity || 0;
-                break;
-              case "paceVariance":
-                // Use pace score as proxy (higher is better, so invert)
-                actualValue = 10 - (feedback.pace || 5);
-                break;
-            }
-            const challengeScore = calculateChallengeScore(session.challengeType, actualValue);
-            updates.challengeScore = challengeScore;
-          }
-        }
-
-        await updateSession(id, updates);
-        setSession((prev) => prev ? { ...prev, ...updates } : null);
+  const runAIAnalysis = useCallback(
+    async (
+      text: string,
+      durationSec: number,
+      sentimentData?: any[],
+      speechCtx?: any,
+    ) => {
+      if (!isOpenAIConfigured()) {
+        setAiError(
+          "OpenAI not configured. Add EXPO_PUBLIC_OPENAI_API_KEY to .env",
+        );
+        return;
       }
-    } catch (error) {
-      console.error("AI Analysis error:", error);
-      setAiError(error instanceof Error ? error.message : "AI analysis failed");
-    } finally {
-      setIsAnalyzingWithAI(false);
-    }
-  }, [id, session, updateSession]);
+
+      setIsAnalyzingWithAI(true);
+      setAiError(null);
+
+      try {
+        const feedback = await analyzeSpeechWithAI(
+          text,
+          durationSec,
+          sentimentData,
+          speechCtx,
+        );
+        setAiFeedback(feedback);
+
+        // Save AI feedback to session
+        if (id) {
+          const updates: Partial<RecordingSession> = { aiFeedback: feedback };
+
+          // If this is a challenge session, calculate the challenge score
+          if (session?.practiceMode === "challenge" && session?.challengeType) {
+            const challenge = getChallengeById(session.challengeType);
+            if (challenge) {
+              let actualValue = 0;
+              switch (challenge.scoringMetric) {
+                case "fillerRatio":
+                  actualValue =
+                    (feedback.fillerWordCount || 0) /
+                    Math.max(text.split(/\s+/).length, 1);
+                  break;
+                case "clarity":
+                  actualValue = feedback.clarity || 0;
+                  break;
+                case "paceVariance":
+                  actualValue = 10 - (feedback.pace || 5);
+                  break;
+              }
+              const challengeScore = calculateChallengeScore(
+                session.challengeType,
+                actualValue,
+              );
+              updates.challengeScore = challengeScore;
+            }
+          }
+
+          await updateSession(id, updates);
+          setSession((prev) => (prev ? { ...prev, ...updates } : null));
+        }
+      } catch (error) {
+        console.error("AI Analysis error:", error);
+        setAiError(
+          error instanceof Error ? error.message : "AI analysis failed",
+        );
+      } finally {
+        setIsAnalyzingWithAI(false);
+      }
+    },
+    [id, session, updateSession],
+  );
 
   // Load session on mount
   useEffect(() => {
@@ -134,12 +303,25 @@ export default function AnalysisScreen() {
           if (computedAnalysis) {
             await updateSession(id, { analysis: computedAnalysis });
             setSession((prev) =>
-              prev ? { ...prev, analysis: computedAnalysis } : null
+              prev ? { ...prev, analysis: computedAnalysis } : null,
             );
           }
           // Also run AI analysis if no existing feedback
           if (!loaded.aiFeedback) {
-            runAIAnalysis(loaded.transcription.text, loaded.duration / 1000);
+            const sentimentData = loaded.transcription.sentimentAnalysis?.map(
+              (s) => ({
+                text: s.text,
+                sentiment: s.sentiment,
+                confidence: s.confidence,
+              }),
+            );
+            const speechCtx = (loaded as any).speechContext;
+            runAIAnalysis(
+              loaded.transcription.text,
+              loaded.duration / 1000,
+              sentimentData,
+              speechCtx,
+            );
           }
         }
 
@@ -163,7 +345,7 @@ export default function AnalysisScreen() {
       if (!isConfigured) {
         Alert.alert(
           "Configuration Required",
-          "Please add your AssemblyAI API key to the .env file to enable speech-to-text."
+          "Please add your AssemblyAI API key to the .env file to enable speech-to-text.",
         );
         return;
       }
@@ -183,15 +365,21 @@ export default function AnalysisScreen() {
         setSession((prev) =>
           prev
             ? { ...prev, transcription: result, analysis: computedAnalysis }
-            : null
+            : null,
         );
 
-        // Run AI analysis
+        // Run AI analysis with sentiment data
         const durationSec = durationMs / 1000;
-        runAIAnalysis(result.text, durationSec);
+        const sentimentData = result.sentimentAnalysis?.map((s) => ({
+          text: s.text,
+          sentiment: s.sentiment,
+          confidence: s.confidence,
+        }));
+        const speechCtx = session ? (session as any).speechContext : undefined;
+        runAIAnalysis(result.text, durationSec, sentimentData, speechCtx);
       }
     },
-    [id, isConfigured, transcribe, updateSession, runAIAnalysis]
+    [id, isConfigured, transcribe, updateSession, runAIAnalysis, session],
   );
 
   // Retry transcription
@@ -205,9 +393,35 @@ export default function AnalysisScreen() {
   const handleRetryAI = useCallback(() => {
     const displayTranscription = transcription || session?.transcription;
     if (displayTranscription && session) {
-      runAIAnalysis(displayTranscription.text, session.duration / 1000);
+      const sentimentData = displayTranscription.sentimentAnalysis?.map(
+        (s) => ({
+          text: s.text,
+          sentiment: s.sentiment,
+          confidence: s.confidence,
+        }),
+      );
+      const speechCtx = (session as any).speechContext;
+      runAIAnalysis(
+        displayTranscription.text,
+        session.duration / 1000,
+        sentimentData,
+        speechCtx,
+      );
     }
   }, [transcription, session, runAIAnalysis]);
+
+  // Handle score tap
+  const handleScoreTap = (category: string) => {
+    if (aiFeedback?.scoreBreakdown) {
+      const breakdown = aiFeedback.scoreBreakdown.find(
+        (b) => b.category === category,
+      );
+      if (breakdown) {
+        setSelectedBreakdown(breakdown);
+        setShowScoreDetail(true);
+      }
+    }
+  };
 
   // Loading state
   if (isLoadingSession) {
@@ -358,6 +572,20 @@ export default function AnalysisScreen() {
     );
   }
 
+  // Sentiment summary from transcription
+  const sentimentResults = displayTranscription.sentimentAnalysis;
+  const sentimentSummary = sentimentResults
+    ? {
+        positive: sentimentResults.filter((s) => s.sentiment === "POSITIVE")
+          .length,
+        neutral: sentimentResults.filter((s) => s.sentiment === "NEUTRAL")
+          .length,
+        negative: sentimentResults.filter((s) => s.sentiment === "NEGATIVE")
+          .length,
+        total: sentimentResults.length,
+      }
+    : null;
+
   // Full analysis view
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["bottom"]}>
@@ -404,13 +632,18 @@ export default function AnalysisScreen() {
                 >
                   {aiError}
                 </Text>
-                <Button title="Retry AI Analysis" onPress={handleRetryAI} variant="secondary" size="small" />
+                <Button
+                  title="Retry AI Analysis"
+                  onPress={handleRetryAI}
+                  variant="secondary"
+                  size="small"
+                />
               </View>
             )}
 
             {aiFeedback && (
               <View>
-                {/* AI Score */}
+                {/* AI Score - Tappable */}
                 <View
                   className="flex-row justify-between mb-4 p-4 rounded-xl"
                   style={{ backgroundColor: "#011627" }}
@@ -435,9 +668,10 @@ export default function AnalysisScreen() {
                       Overall
                     </Text>
                   </View>
-                  <View
+                  <TouchableOpacity
                     className="flex-1 items-center border-l"
                     style={{ borderColor: "#034569" }}
+                    onPress={() => handleScoreTap("Clarity")}
                   >
                     <Text
                       className="text-xl"
@@ -457,10 +691,11 @@ export default function AnalysisScreen() {
                     >
                       Clarity
                     </Text>
-                  </View>
-                  <View
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     className="flex-1 items-center border-l"
                     style={{ borderColor: "#034569" }}
+                    onPress={() => handleScoreTap("Pace")}
                   >
                     <Text
                       className="text-xl"
@@ -480,10 +715,11 @@ export default function AnalysisScreen() {
                     >
                       Pace
                     </Text>
-                  </View>
-                  <View
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     className="flex-1 items-center border-l"
                     style={{ borderColor: "#034569" }}
+                    onPress={() => handleScoreTap("Confidence")}
                   >
                     <Text
                       className="text-xl"
@@ -503,8 +739,22 @@ export default function AnalysisScreen() {
                     >
                       Confidence
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
+
+                {/* Tap hint */}
+                {aiFeedback.scoreBreakdown &&
+                  aiFeedback.scoreBreakdown.length > 0 && (
+                    <Text
+                      className="text-xs text-center mb-3"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#6bb8d4",
+                      }}
+                    >
+                      Tap any score to see how to improve it
+                    </Text>
+                  )}
 
                 {/* Summary */}
                 <View
@@ -521,6 +771,143 @@ export default function AnalysisScreen() {
                     {aiFeedback.summary}
                   </Text>
                 </View>
+
+                {/* Tone Analysis */}
+                {aiFeedback.toneAnalysis && (
+                  <View
+                    className="p-4 rounded-lg mb-4"
+                    style={{ backgroundColor: "#ffb70315" }}
+                  >
+                    <View className="flex-row items-center mb-2">
+                      <SpeakerWaveIcon size={16} color="#ffb703" />
+                      <Text
+                        className="ml-2 text-sm"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#ffb703",
+                        }}
+                      >
+                        Tone & Delivery
+                      </Text>
+                    </View>
+                    <Text
+                      className="leading-5"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      {aiFeedback.toneAnalysis}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Sentiment from AssemblyAI */}
+                {sentimentSummary && sentimentSummary.total > 0 && (
+                  <View
+                    className="p-4 rounded-lg mb-4"
+                    style={{ backgroundColor: "#011627" }}
+                  >
+                    <View className="flex-row items-center mb-3">
+                      <FaceSmileIcon size={16} color="#8ecae6" />
+                      <Text
+                        className="ml-2 text-sm"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#8ecae6",
+                        }}
+                      >
+                        Sentiment Breakdown
+                      </Text>
+                    </View>
+                    <View className="flex-row gap-3">
+                      <View
+                        className="flex-1 items-center py-2 rounded-lg"
+                        style={{ backgroundColor: "#22c55e20" }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#22c55e",
+                            fontSize: 18,
+                          }}
+                        >
+                          {Math.round(
+                            (sentimentSummary.positive /
+                              sentimentSummary.total) *
+                              100,
+                          )}
+                          %
+                        </Text>
+                        <Text
+                          className="text-xs"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Light",
+                            color: "#22c55e",
+                          }}
+                        >
+                          Positive
+                        </Text>
+                      </View>
+                      <View
+                        className="flex-1 items-center py-2 rounded-lg"
+                        style={{ backgroundColor: "#8ecae620" }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#8ecae6",
+                            fontSize: 18,
+                          }}
+                        >
+                          {Math.round(
+                            (sentimentSummary.neutral /
+                              sentimentSummary.total) *
+                              100,
+                          )}
+                          %
+                        </Text>
+                        <Text
+                          className="text-xs"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Light",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          Neutral
+                        </Text>
+                      </View>
+                      <View
+                        className="flex-1 items-center py-2 rounded-lg"
+                        style={{ backgroundColor: "#fb850020" }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#fb8500",
+                            fontSize: 18,
+                          }}
+                        >
+                          {Math.round(
+                            (sentimentSummary.negative /
+                              sentimentSummary.total) *
+                              100,
+                          )}
+                          %
+                        </Text>
+                        <Text
+                          className="text-xs"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Light",
+                            color: "#fb8500",
+                          }}
+                        >
+                          Negative
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
 
                 {/* Strengths */}
                 {aiFeedback.strengths.length > 0 && (
@@ -627,96 +1014,132 @@ export default function AnalysisScreen() {
                   </View>
                 )}
 
-                {/* Sentence Suggestions */}
-                {aiFeedback.sentenceSuggestions && aiFeedback.sentenceSuggestions.length > 0 && (
+                {/* Extended Transcript (for short speeches) */}
+                {aiFeedback.extendedTranscript && (
                   <View
                     className="mt-4 pt-4 border-t"
                     style={{ borderColor: "#034569" }}
                   >
                     <View className="flex-row items-center mb-3">
-                      <PencilSquareIcon size={18} color="#8ecae6" />
+                      <DocumentTextIcon size={18} color="#22c55e" />
                       <Text
                         className="ml-2"
                         style={{
                           fontFamily: "CabinetGrotesk-Bold",
+                          color: "#22c55e",
+                        }}
+                      >
+                        Suggested Extended Version
+                      </Text>
+                    </View>
+                    <View
+                      className="p-4 rounded-lg"
+                      style={{ backgroundColor: "#22c55e10" }}
+                    >
+                      <Text
+                        className="leading-6"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Light",
                           color: "#8ecae6",
                         }}
                       >
-                        Better Ways to Say It
+                        {aiFeedback.extendedTranscript}
                       </Text>
                     </View>
-                    {aiFeedback.sentenceSuggestions.map((suggestion, i) => (
-                      <View
-                        key={i}
-                        className="p-4 rounded-lg mb-3"
-                        style={{ backgroundColor: "#011627" }}
-                      >
-                        <View className="flex-row items-center mb-2">
-                          <View
-                            className="px-2 py-1 rounded"
-                            style={{ backgroundColor: "#fb850030" }}
-                          >
-                            <Text
-                              className="text-xs"
-                              style={{
-                                fontFamily: "CabinetGrotesk-Medium",
-                                color: "#fb8500",
-                              }}
-                            >
-                              Original
-                            </Text>
-                          </View>
-                        </View>
-                        <Text
-                          className="mb-3 italic"
-                          style={{
-                            fontFamily: "CabinetGrotesk-Light",
-                            color: "#6bb8d4",
-                          }}
-                        >
-                          "{suggestion.original}"
-                        </Text>
-                        <View className="flex-row items-center mb-2">
-                          <View
-                            className="px-2 py-1 rounded"
-                            style={{ backgroundColor: "#ffb703" }}
-                          >
-                            <Text
-                              className="text-xs"
-                              style={{
-                                fontFamily: "CabinetGrotesk-Medium",
-                                color: "#023047",
-                              }}
-                            >
-                              Improved
-                            </Text>
-                          </View>
-                        </View>
-                        <Text
-                          className="mb-2"
-                          style={{
-                            fontFamily: "CabinetGrotesk-Medium",
-                            color: "#ffffff",
-                          }}
-                        >
-                          "{suggestion.improved}"
-                        </Text>
-                        <View className="flex-row items-start">
-                          <InformationCircleIcon size={14} color="#219ebc" />
-                          <Text
-                            className="text-xs ml-1 flex-1"
-                            style={{
-                              fontFamily: "CabinetGrotesk-Light",
-                              color: "#8ecae6",
-                            }}
-                          >
-                            {suggestion.reason}
-                          </Text>
-                        </View>
-                      </View>
-                    ))}
                   </View>
                 )}
+
+                {/* Sentence Suggestions */}
+                {aiFeedback.sentenceSuggestions &&
+                  aiFeedback.sentenceSuggestions.length > 0 && (
+                    <View
+                      className="mt-4 pt-4 border-t"
+                      style={{ borderColor: "#034569" }}
+                    >
+                      <View className="flex-row items-center mb-3">
+                        <PencilSquareIcon size={18} color="#8ecae6" />
+                        <Text
+                          className="ml-2"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          Better Ways to Say It
+                        </Text>
+                      </View>
+                      {aiFeedback.sentenceSuggestions.map((suggestion, i) => (
+                        <View
+                          key={i}
+                          className="p-4 rounded-lg mb-3"
+                          style={{ backgroundColor: "#011627" }}
+                        >
+                          <View className="flex-row items-center mb-2">
+                            <View
+                              className="px-2 py-1 rounded"
+                              style={{ backgroundColor: "#fb850030" }}
+                            >
+                              <Text
+                                className="text-xs"
+                                style={{
+                                  fontFamily: "CabinetGrotesk-Medium",
+                                  color: "#fb8500",
+                                }}
+                              >
+                                Original
+                              </Text>
+                            </View>
+                          </View>
+                          <Text
+                            className="mb-3 italic"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Light",
+                              color: "#6bb8d4",
+                            }}
+                          >
+                            "{suggestion.original}"
+                          </Text>
+                          <View className="flex-row items-center mb-2">
+                            <View
+                              className="px-2 py-1 rounded"
+                              style={{ backgroundColor: "#ffb703" }}
+                            >
+                              <Text
+                                className="text-xs"
+                                style={{
+                                  fontFamily: "CabinetGrotesk-Medium",
+                                  color: "#023047",
+                                }}
+                              >
+                                Improved
+                              </Text>
+                            </View>
+                          </View>
+                          <Text
+                            className="mb-2"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Medium",
+                              color: "#ffffff",
+                            }}
+                          >
+                            "{suggestion.improved}"
+                          </Text>
+                          <View className="flex-row items-start">
+                            <InformationCircleIcon size={14} color="#219ebc" />
+                            <Text
+                              className="text-xs ml-1 flex-1"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Light",
+                                color: "#8ecae6",
+                              }}
+                            >
+                              {suggestion.reason}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  )}
 
                 {/* Filler Words from AI */}
                 {aiFeedback.fillerWords.length > 0 && (
@@ -770,46 +1193,55 @@ export default function AnalysisScreen() {
           </View>
 
           {/* Challenge Score (if applicable) */}
-          {session?.practiceMode === "challenge" && session?.challengeScore !== undefined && (
-            <View className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary/20">
-              <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                  <TrophyIcon size={24} color="#fb8500" />
+          {session?.practiceMode === "challenge" &&
+            session?.challengeScore !== undefined && (
+              <View className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary/20">
+                <View className="flex-row items-center justify-between mb-3">
+                  <View className="flex-row items-center">
+                    <TrophyIcon size={24} color="#fb8500" />
+                    <Text
+                      className="text-lg text-white ml-2"
+                      style={{ fontFamily: "CabinetGrotesk-Bold" }}
+                    >
+                      Challenge Score
+                    </Text>
+                  </View>
                   <Text
-                    className="text-lg text-white ml-2"
-                    style={{ fontFamily: "CabinetGrotesk-Bold" }}
+                    className="text-3xl"
+                    style={{
+                      fontFamily: "CabinetGrotesk-Bold",
+                      color: "#fb8500",
+                    }}
                   >
-                    Challenge Score
+                    {session.challengeScore}
                   </Text>
                 </View>
+                <ProgressBar
+                  progress={session.challengeScore}
+                  color={
+                    session.challengeScore >= 70
+                      ? "green"
+                      : session.challengeScore >= 40
+                        ? "yellow"
+                        : "red"
+                  }
+                  size="medium"
+                />
                 <Text
-                  className="text-3xl"
+                  className="text-sm mt-2"
                   style={{
-                    fontFamily: "CabinetGrotesk-Bold",
-                    color: "#fb8500",
+                    fontFamily: "CabinetGrotesk-Light",
+                    color: "#8ecae6",
                   }}
                 >
-                  {session.challengeScore}
+                  {session.challengeScore >= 70
+                    ? "Excellent! You crushed this challenge!"
+                    : session.challengeScore >= 40
+                      ? "Good effort! Keep practicing to improve."
+                      : "Keep trying! Practice makes perfect."}
                 </Text>
               </View>
-              <ProgressBar
-                progress={session.challengeScore}
-                color={session.challengeScore >= 70 ? "green" : session.challengeScore >= 40 ? "yellow" : "red"}
-                size="medium"
-              />
-              <Text
-                className="text-sm mt-2"
-                style={{
-                  fontFamily: "CabinetGrotesk-Light",
-                  color: "#8ecae6",
-                }}
-              >
-                {session.challengeScore >= 70 ? "Excellent! You crushed this challenge!" :
-                 session.challengeScore >= 40 ? "Good effort! Keep practicing to improve." :
-                 "Keep trying! Practice makes perfect."}
-              </Text>
-            </View>
-          )}
+            )}
 
           {/* Metrics section */}
           <View className="mt-6">
@@ -827,11 +1259,13 @@ export default function AnalysisScreen() {
               subtitle={`Ideal: ${SPEAKING_RATE_CONFIG.IDEAL_MIN}-${SPEAKING_RATE_CONFIG.IDEAL_MAX} WPM`}
               progress={Math.min(
                 100,
-                (displayAnalysis.speakingRate.wordsPerMinute / 180) * 100
+                (displayAnalysis.speakingRate.wordsPerMinute / 180) * 100,
               )}
               progressColor={
-                displayAnalysis.speakingRate.wordsPerMinute >= SPEAKING_RATE_CONFIG.IDEAL_MIN &&
-                displayAnalysis.speakingRate.wordsPerMinute <= SPEAKING_RATE_CONFIG.IDEAL_MAX
+                displayAnalysis.speakingRate.wordsPerMinute >=
+                  SPEAKING_RATE_CONFIG.IDEAL_MIN &&
+                displayAnalysis.speakingRate.wordsPerMinute <=
+                  SPEAKING_RATE_CONFIG.IDEAL_MAX
                   ? "green"
                   : "yellow"
               }
@@ -840,7 +1274,9 @@ export default function AnalysisScreen() {
             {/* Filler Words */}
             <MetricsCard
               title="Filler Words"
-              value={getTotalFillerCount(displayAnalysis.fillerWords).toString()}
+              value={getTotalFillerCount(
+                displayAnalysis.fillerWords,
+              ).toString()}
               subtitle={
                 displayAnalysis.fillerWords.length > 0
                   ? `Most common: ${displayAnalysis.fillerWords
@@ -853,8 +1289,8 @@ export default function AnalysisScreen() {
                 getTotalFillerCount(displayAnalysis.fillerWords) <= 3
                   ? "green"
                   : getTotalFillerCount(displayAnalysis.fillerWords) <= 10
-                  ? "yellow"
-                  : "red"
+                    ? "yellow"
+                    : "red"
               }
             />
 
@@ -871,8 +1307,8 @@ export default function AnalysisScreen() {
                 displayAnalysis.pauseStats.count <= 3
                   ? "green"
                   : displayAnalysis.pauseStats.count <= 8
-                  ? "yellow"
-                  : "red"
+                    ? "yellow"
+                    : "red"
               }
             />
 
@@ -910,6 +1346,13 @@ export default function AnalysisScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Score Detail Modal */}
+      <ScoreDetailModal
+        visible={showScoreDetail}
+        onClose={() => setShowScoreDetail(false)}
+        breakdown={selectedBreakdown}
+      />
     </SafeAreaView>
   );
 }

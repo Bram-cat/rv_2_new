@@ -12,6 +12,8 @@ import {
   ChartBarIcon,
   LightBulbIcon,
   SparklesIcon,
+  PencilSquareIcon,
+  ClockIcon,
 } from "react-native-heroicons/outline";
 
 import { usePermissions } from "../../src/hooks/usePermissions";
@@ -20,8 +22,13 @@ import { useStorage } from "../../src/hooks/useStorage";
 
 import { RecordButton } from "../../src/components/recording/RecordButton";
 import { Timer } from "../../src/components/recording/Timer";
+import { VoiceVisualizer } from "../../src/components/recording/VoiceVisualizer";
 import { Button } from "../../src/components/ui/Button";
 import { LoadingSpinner } from "../../src/components/ui/LoadingSpinner";
+import {
+  SpeechContextModal,
+  SpeechContext,
+} from "../../src/components/modals/SpeechContextModal";
 
 import { RECORDING_CONFIG } from "../../src/constants/thresholds";
 import { currentSpeechContext } from "./_layout";
@@ -29,6 +36,14 @@ import { currentSpeechContext } from "./_layout";
 // Generate a unique ID using expo-crypto
 function generateId(): string {
   return Crypto.randomUUID();
+}
+
+// Format ms to mm:ss
+function formatTime(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
 // Control button component with Heroicons
@@ -40,7 +55,11 @@ function ControlButton({
   disabled = false,
   size = "medium",
 }: {
-  icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>;
+  icon: React.ComponentType<{
+    size: number;
+    color: string;
+    strokeWidth?: number;
+  }>;
   label: string;
   onPress: () => void;
   variant?: "default" | "danger" | "success";
@@ -101,7 +120,10 @@ function ControlButton({
 export default function RecordScreen() {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const [speechContext, setSpeechContext] = useState(currentSpeechContext);
+  const [speechContext, setSpeechContext] = useState<SpeechContext | null>(
+    currentSpeechContext,
+  );
+  const [showEditContext, setShowEditContext] = useState(false);
 
   // Update context when it changes
   useEffect(() => {
@@ -128,6 +150,23 @@ export default function RecordScreen() {
   } = useAudioRecording();
 
   const { addSession } = useStorage();
+
+  // Time limit in ms
+  const timeLimitMs = speechContext?.timeLimitMinutes
+    ? speechContext.timeLimitMinutes * 60 * 1000
+    : 0;
+
+  // Auto-stop when time limit reached
+  useEffect(() => {
+    if (
+      timeLimitMs > 0 &&
+      isRecording &&
+      !isPaused &&
+      duration >= timeLimitMs
+    ) {
+      handleStop();
+    }
+  }, [duration, timeLimitMs, isRecording, isPaused]);
 
   // Handle record button press - only starts recording
   const handleRecordPress = useCallback(async () => {
@@ -166,12 +205,20 @@ export default function RecordScreen() {
       console.error("Save recording error:", error);
       Alert.alert(
         "Error",
-        `Failed to save recording: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to save recording: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     } finally {
       setIsSaving(false);
     }
-  }, [stopRecording, duration, addSession, router, resetRecording, isSaving, speechContext]);
+  }, [
+    stopRecording,
+    duration,
+    addSession,
+    router,
+    resetRecording,
+    isSaving,
+    speechContext,
+  ]);
 
   // Handle pause/continue button
   const handlePauseResume = useCallback(() => {
@@ -196,9 +243,15 @@ export default function RecordScreen() {
             resetRecording();
           },
         },
-      ]
+      ],
     );
   }, [resetRecording]);
+
+  // Handle context edit
+  const handleContextUpdate = (context: SpeechContext) => {
+    setSpeechContext(context);
+    setShowEditContext(false);
+  };
 
   // Loading state
   if (permissionLoading) {
@@ -256,6 +309,11 @@ export default function RecordScreen() {
     );
   }
 
+  // Remaining time display
+  const remainingMs = timeLimitMs > 0 ? Math.max(0, timeLimitMs - duration) : 0;
+  const isNearTimeLimit =
+    timeLimitMs > 0 && remainingMs < 30000 && remainingMs > 0;
+
   // Main recording state
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
@@ -280,17 +338,35 @@ export default function RecordScreen() {
           </Text>
         </View>
 
-        {/* Speech Context Display */}
+        {/* Speech Context Display with Edit Button */}
         {speechContext && speechContext.speechType !== "General Practice" && (
           <View className="mx-6 mb-4 bg-background-card rounded-xl p-4 border border-secondary/20">
-            <View className="flex-row items-center mb-2">
-              <SparklesIcon size={16} color="#ffb703" />
-              <Text
-                className="text-accent ml-2"
-                style={{ fontFamily: "CabinetGrotesk-Medium" }}
+            <View className="flex-row items-center justify-between mb-2">
+              <View className="flex-row items-center">
+                <SparklesIcon size={16} color="#ffb703" />
+                <Text
+                  className="text-accent ml-2"
+                  style={{ fontFamily: "CabinetGrotesk-Medium" }}
+                >
+                  Context
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowEditContext(true)}
+                className="flex-row items-center px-3 py-1 rounded-full"
+                style={{ backgroundColor: "#219ebc30" }}
               >
-                Context
-              </Text>
+                <PencilSquareIcon size={14} color="#8ecae6" />
+                <Text
+                  className="text-xs ml-1"
+                  style={{
+                    fontFamily: "CabinetGrotesk-Medium",
+                    color: "#8ecae6",
+                  }}
+                >
+                  Edit
+                </Text>
+              </TouchableOpacity>
             </View>
             <Text
               className="text-secondary-light text-sm"
@@ -299,37 +375,101 @@ export default function RecordScreen() {
               {speechContext.audience && `Audience: ${speechContext.audience}`}
               {speechContext.goal && ` • Goal: ${speechContext.goal}`}
             </Text>
-            {speechContext.focusAreas.length > 0 && (
-              <View className="flex-row flex-wrap gap-1 mt-2">
-                {speechContext.focusAreas.map((area, i) => (
-                  <View
-                    key={i}
-                    className="px-2 py-1 rounded-full"
-                    style={{ backgroundColor: "#219ebc30" }}
+            <View className="flex-row flex-wrap gap-1 mt-2">
+              {speechContext.focusAreas.map((area, i) => (
+                <View
+                  key={i}
+                  className="px-2 py-1 rounded-full"
+                  style={{ backgroundColor: "#219ebc30" }}
+                >
+                  <Text
+                    className="text-xs"
+                    style={{
+                      fontFamily: "CabinetGrotesk-Medium",
+                      color: "#8ecae6",
+                    }}
                   >
-                    <Text
-                      className="text-xs"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Medium",
-                        color: "#8ecae6",
-                      }}
-                    >
-                      {area}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
+                    {area}
+                  </Text>
+                </View>
+              ))}
+              {speechContext.timeLimitMinutes > 0 && (
+                <View
+                  className="px-2 py-1 rounded-full flex-row items-center"
+                  style={{ backgroundColor: "#ffb70330" }}
+                >
+                  <ClockIcon size={12} color="#ffb703" />
+                  <Text
+                    className="text-xs ml-1"
+                    style={{
+                      fontFamily: "CabinetGrotesk-Medium",
+                      color: "#ffb703",
+                    }}
+                  >
+                    {speechContext.timeLimitMinutes} min
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
+        )}
+
+        {/* No context - show edit button */}
+        {(!speechContext ||
+          speechContext.speechType === "General Practice") && (
+          <TouchableOpacity
+            onPress={() => setShowEditContext(true)}
+            className="mx-6 mb-4 flex-row items-center justify-center py-3 rounded-xl border border-dashed border-secondary/30"
+          >
+            <PencilSquareIcon size={16} color="#8ecae6" />
+            <Text
+              className="ml-2"
+              style={{
+                fontFamily: "CabinetGrotesk-Medium",
+                color: "#8ecae6",
+              }}
+            >
+              Set speech preferences
+            </Text>
+          </TouchableOpacity>
         )}
 
         {/* Recording area */}
         <View className="flex-1 items-center justify-center px-6 py-8">
-          {/* Timer */}
-          <Timer
-            durationMs={duration}
-            maxDurationMs={RECORDING_CONFIG.MAX_DURATION_MS}
-          />
+          {/* Voice Visualizer - breathing animation */}
+          <VoiceVisualizer isRecording={isRecording} isPaused={isPaused} />
+
+          {/* Timer below visualizer */}
+          <View className="mt-4">
+            <Timer
+              durationMs={duration}
+              maxDurationMs={timeLimitMs || RECORDING_CONFIG.MAX_DURATION_MS}
+            />
+          </View>
+
+          {/* Time remaining indicator */}
+          {isRecording && timeLimitMs > 0 && (
+            <View
+              className="mt-2 flex-row items-center px-3 py-1 rounded-full"
+              style={{
+                backgroundColor: isNearTimeLimit ? "#fb850030" : "#219ebc20",
+              }}
+            >
+              <ClockIcon
+                size={14}
+                color={isNearTimeLimit ? "#fb8500" : "#8ecae6"}
+              />
+              <Text
+                className="text-xs ml-1"
+                style={{
+                  fontFamily: "CabinetGrotesk-Medium",
+                  color: isNearTimeLimit ? "#fb8500" : "#8ecae6",
+                }}
+              >
+                {formatTime(remainingMs)} remaining
+              </Text>
+            </View>
+          )}
 
           {/* Status indicator */}
           {isRecording && (
@@ -359,14 +499,16 @@ export default function RecordScreen() {
             </View>
           )}
 
-          {/* Record button */}
-          <View className="mt-8">
-            <RecordButton
-              isRecording={isRecording && !isPaused}
-              onPress={handleRecordPress}
-              disabled={isRecording}
-            />
-          </View>
+          {/* Record button - only shown when not recording */}
+          {!isRecording && (
+            <View className="mt-6">
+              <RecordButton
+                isRecording={false}
+                onPress={handleRecordPress}
+                disabled={false}
+              />
+            </View>
+          )}
 
           {/* Control buttons - shown when recording */}
           {isRecording && (
@@ -499,6 +641,14 @@ export default function RecordScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Edit Context Modal */}
+      <SpeechContextModal
+        visible={showEditContext}
+        onClose={() => setShowEditContext(false)}
+        onSubmit={handleContextUpdate}
+        initialContext={speechContext}
+      />
     </SafeAreaView>
   );
 }

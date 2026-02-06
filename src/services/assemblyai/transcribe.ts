@@ -4,12 +4,12 @@ import {
   getHeaders,
   isAssemblyAIConfigured,
 } from "./client";
-import { TranscriptionResult, WordTimestamp } from "./types";
+import { TranscriptionResult, WordTimestamp, SentimentResult } from "./types";
 
 /**
  * Transcribe an audio file using AssemblyAI REST API
  * @param audioUri - The local URI of the audio file
- * @returns TranscriptionResult with text and word-level timestamps
+ * @returns TranscriptionResult with text, word-level timestamps, and sentiment analysis
  */
 export async function transcribeAudio(
   audioUri: string,
@@ -39,11 +39,23 @@ export async function transcribeAudio(
         confidence: word.confidence,
       })) || [];
 
+    // Extract sentiment analysis results
+    const sentimentAnalysis: SentimentResult[] =
+      transcript.sentiment_analysis_results?.map((item: any) => ({
+        text: item.text,
+        start: item.start,
+        end: item.end,
+        sentiment: item.sentiment,
+        confidence: item.confidence,
+      })) || [];
+
     return {
       text: transcript.text || "",
       words,
       audioDuration: transcript.audio_duration || 0,
       confidence: transcript.confidence || 0,
+      sentimentAnalysis:
+        sentimentAnalysis.length > 0 ? sentimentAnalysis : undefined,
     };
   } catch (error) {
     if (error instanceof Error) {
@@ -109,7 +121,8 @@ async function requestTranscription(audioUrl: string): Promise<string> {
 
   const requestBody = {
     audio_url: audioUrl,
-    speech_models: ["universal-2"], // Required: specify the speech model
+    speech_models: ["universal-2"],
+    sentiment_analysis: true,
   };
   console.log("Transcription request body:", JSON.stringify(requestBody));
 

@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MicrophoneIcon,
   XMarkIcon,
@@ -18,6 +18,7 @@ import {
   PresentationChartBarIcon,
   ChatBubbleLeftRightIcon,
   SparklesIcon,
+  ClockIcon,
 } from "react-native-heroicons/outline";
 
 export interface SpeechContext {
@@ -26,12 +27,14 @@ export interface SpeechContext {
   goal: string;
   focusAreas: string[];
   additionalNotes: string;
+  timeLimitMinutes: number; // 0 = no limit
 }
 
 interface SpeechContextModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (context: SpeechContext) => void;
+  initialContext?: SpeechContext | null;
 }
 
 const SPEECH_TYPES = [
@@ -60,16 +63,49 @@ const FOCUS_AREAS = [
   { id: "engagement", label: "Engagement" },
 ];
 
+const TIME_LIMITS = [
+  { minutes: 0, label: "No Limit" },
+  { minutes: 1, label: "1 min" },
+  { minutes: 2, label: "2 min" },
+  { minutes: 3, label: "3 min" },
+  { minutes: 5, label: "5 min" },
+  { minutes: 10, label: "10 min" },
+];
+
 export function SpeechContextModal({
   visible,
   onClose,
   onSubmit,
+  initialContext,
 }: SpeechContextModalProps) {
   const [speechType, setSpeechType] = useState("");
   const [audience, setAudience] = useState("");
   const [goal, setGoal] = useState("");
   const [focusAreas, setFocusAreas] = useState<string[]>([]);
   const [additionalNotes, setAdditionalNotes] = useState("");
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState(0);
+
+  // Populate from initial context when editing
+  useEffect(() => {
+    if (initialContext && visible) {
+      const foundType = SPEECH_TYPES.find(
+        (t) => t.label === initialContext.speechType,
+      );
+      setSpeechType(foundType?.id || "");
+      const foundAud = AUDIENCES.find(
+        (a) => a.label === initialContext.audience,
+      );
+      setAudience(foundAud?.id || "");
+      setGoal(initialContext.goal);
+      setFocusAreas(
+        initialContext.focusAreas.map(
+          (label) => FOCUS_AREAS.find((f) => f.label === label)?.id || label,
+        ),
+      );
+      setAdditionalNotes(initialContext.additionalNotes);
+      setTimeLimitMinutes(initialContext.timeLimitMinutes || 0);
+    }
+  }, [initialContext, visible]);
 
   const toggleFocusArea = (id: string) => {
     if (focusAreas.includes(id)) {
@@ -86,9 +122,10 @@ export function SpeechContextModal({
       audience: AUDIENCES.find((a) => a.id === audience)?.label || audience,
       goal,
       focusAreas: focusAreas.map(
-        (f) => FOCUS_AREAS.find((fa) => fa.id === f)?.label || f
+        (f) => FOCUS_AREAS.find((fa) => fa.id === f)?.label || f,
       ),
       additionalNotes,
+      timeLimitMinutes,
     });
     resetForm();
   };
@@ -100,6 +137,7 @@ export function SpeechContextModal({
       goal: "",
       focusAreas: [],
       additionalNotes: "",
+      timeLimitMinutes: 0,
     });
     resetForm();
   };
@@ -110,6 +148,7 @@ export function SpeechContextModal({
     setGoal("");
     setFocusAreas([]);
     setAdditionalNotes("");
+    setTimeLimitMinutes(0);
   };
 
   return (
@@ -274,6 +313,44 @@ export function SpeechContextModal({
                           style={{ fontFamily: "CabinetGrotesk-Medium" }}
                         >
                           {area.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Time Limit */}
+              <View className="mb-6">
+                <View className="flex-row items-center mb-3">
+                  <ClockIcon size={18} color="#8ecae6" />
+                  <Text
+                    className="text-white text-base ml-2"
+                    style={{ fontFamily: "CabinetGrotesk-Medium" }}
+                  >
+                    Time Limit
+                  </Text>
+                </View>
+                <View className="flex-row flex-wrap gap-2">
+                  {TIME_LIMITS.map((tl) => {
+                    const isSelected = timeLimitMinutes === tl.minutes;
+                    return (
+                      <TouchableOpacity
+                        key={tl.minutes}
+                        onPress={() => setTimeLimitMinutes(tl.minutes)}
+                        className={`px-4 py-2 rounded-full border ${
+                          isSelected
+                            ? "bg-secondary border-secondary"
+                            : "bg-transparent border-secondary/30"
+                        }`}
+                      >
+                        <Text
+                          className={
+                            isSelected ? "text-primary" : "text-secondary-light"
+                          }
+                          style={{ fontFamily: "CabinetGrotesk-Medium" }}
+                        >
+                          {tl.label}
                         </Text>
                       </TouchableOpacity>
                     );

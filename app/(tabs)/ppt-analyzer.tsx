@@ -1,5 +1,6 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as DocumentPicker from "expo-document-picker";
 import {
   CloudArrowUpIcon,
   DocumentIcon,
@@ -11,6 +12,32 @@ import {
 } from "react-native-heroicons/outline";
 
 export default function PPTAnalyzerScreen() {
+  const handlePickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          "application/vnd.ms-powerpoint",
+          "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          "application/pdf",
+        ],
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const file = result.assets[0];
+        Alert.alert(
+          "File Selected",
+          `Name: ${file.name}\nSize: ${(file.size! / 1024).toFixed(2)} KB\n\nNote: This feature is coming soon!`,
+          [{ text: "OK" }]
+        );
+        // TODO: Implement file upload and analysis
+        console.log("Selected file:", file);
+      }
+    } catch (err) {
+      console.error("Error picking document:", err);
+      Alert.alert("Error", "Failed to pick document");
+    }
+  };
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <ScrollView
@@ -39,6 +66,7 @@ export default function PPTAnalyzerScreen() {
           <TouchableOpacity
             className="bg-background-card border-2 border-dashed border-secondary/30 rounded-2xl p-8 items-center"
             activeOpacity={0.7}
+            onPress={handlePickDocument}
           >
             <View
               className="w-20 h-20 rounded-full items-center justify-center mb-4"

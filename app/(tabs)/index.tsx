@@ -151,7 +151,7 @@ export default function HomeScreen() {
               className="text-3xl text-white ml-2"
               style={{ fontFamily: "CabinetGrotesk-Bold" }}
             >
-              Speech Coach
+              Speechi
             </Text>
           </View>
           <Text

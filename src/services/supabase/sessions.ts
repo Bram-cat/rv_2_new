@@ -28,7 +28,7 @@ export interface SupabaseSession {
  */
 export async function uploadAudio(
   localUri: string,
-  sessionId: string
+  sessionId: string,
 ): Promise<string | null> {
   if (!isSupabaseConfigured() || !supabase) {
     console.log("Supabase not configured, skipping audio upload");
@@ -91,22 +91,36 @@ export async function saveSession(session: RecordingSession): Promise<boolean> {
       audioUrl = await uploadAudio(session.audioUri, session.id);
     }
 
-    const { error } = await supabase.from(SESSIONS_TABLE).upsert({
+    // Only include core columns that are guaranteed to exist
+    const baseData: Record<string, any> = {
       id: session.id,
       created_at: session.createdAt,
       audio_url: audioUrl,
       duration: session.duration,
       transcription: session.transcription,
       analysis: session.analysis,
-      ai_feedback: session.aiFeedback,
+      title: session.title || null,
+      user_id: null,
+    };
+
+    // Try with all columns first, fall back to base columns on error
+    const fullData = {
+      ...baseData,
+      ai_feedback: session.aiFeedback || null,
       practice_mode: session.practiceMode || null,
       template_id: session.templateId || null,
       challenge_type: session.challengeType || null,
       target_duration: session.targetDuration || null,
       challenge_score: session.challengeScore || null,
-      title: session.title || null,
-      user_id: null, // Will be set when auth is implemented
-    });
+    };
+
+    let { error } = await supabase.from(SESSIONS_TABLE).upsert(fullData);
+
+    // If column doesn't exist, retry with base columns only
+    if (error && error.code === "PGRST204") {
+      console.log("Some columns missing in Supabase, using base columns only");
+      ({ error } = await supabase.from(SESSIONS_TABLE).upsert(baseData));
+    }
 
     if (error) {
       console.error("Error saving session to Supabase:", error);
@@ -126,7 +140,7 @@ export async function saveSession(session: RecordingSession): Promise<boolean> {
  */
 export async function updateSupabaseSession(
   id: string,
-  updates: Partial<RecordingSession>
+  updates: Partial<RecordingSession>,
 ): Promise<boolean> {
   if (!isSupabaseConfigured() || !supabase) {
     return false;
@@ -134,16 +148,37 @@ export async function updateSupabaseSession(
 
   try {
     const updateData: Record<string, any> = {};
-    if (updates.transcription !== undefined) updateData.transcription = updates.transcription;
+    if (updates.transcription !== undefined)
+      updateData.transcription = updates.transcription;
     if (updates.analysis !== undefined) updateData.analysis = updates.analysis;
-    if (updates.aiFeedback !== undefined) updateData.ai_feedback = updates.aiFeedback;
-    if (updates.challengeScore !== undefined) updateData.challenge_score = updates.challengeScore;
     if (updates.title !== undefined) updateData.title = updates.title;
 
-    const { error } = await supabase
+    // Extra columns that may not exist in the database yet
+    const extraData: Record<string, any> = {};
+    if (updates.aiFeedback !== undefined)
+      extraData.ai_feedback = updates.aiFeedback;
+    if (updates.challengeScore !== undefined)
+      extraData.challenge_score = updates.challengeScore;
+
+    // Try with all columns first
+    const fullUpdate = { ...updateData, ...extraData };
+    let { error } = await supabase
       .from(SESSIONS_TABLE)
-      .update(updateData)
+      .update(fullUpdate)
       .eq("id", id);
+
+    // If column doesn't exist, retry with base columns only
+    if (error && error.code === "PGRST204") {
+      console.log("Some columns missing in Supabase, using base columns only");
+      if (Object.keys(updateData).length > 0) {
+        ({ error } = await supabase
+          .from(SESSIONS_TABLE)
+          .update(updateData)
+          .eq("id", id));
+      } else {
+        error = null; // Nothing to update with base columns
+      }
+    }
 
     if (error) {
       console.error("Error updating session in Supabase:", error);
@@ -202,7 +237,7 @@ export async function getSupabaseSessions(): Promise<RecordingSession[]> {
  * Get a single session from Supabase
  */
 export async function getSupabaseSession(
-  id: string
+  id: string,
 ): Promise<RecordingSession | null> {
   if (!isSupabaseConfigured() || !supabase) {
     return null;
@@ -253,10 +288,7 @@ export async function deleteSupabaseSession(id: string): Promise<boolean> {
     await supabase.storage.from(AUDIO_BUCKET).remove([`${id}.m4a`]);
 
     // Delete session record
-    const { error } = await supabase
-      .from(SESSIONS_TABLE)
-      .delete()
-      .eq("id", id);
+    const { error } = await supabase.from(SESSIONS_TABLE).delete().eq("id", id);
 
     if (error) {
       console.error("Error deleting session from Supabase:", error);
