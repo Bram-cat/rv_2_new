@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
@@ -14,6 +14,8 @@ import {
   SparklesIcon,
   PencilSquareIcon,
   ClockIcon,
+  ArrowLeftIcon,
+  AcademicCapIcon,
 } from "react-native-heroicons/outline";
 
 import { usePermissions } from "../../src/hooks/usePermissions";
@@ -32,6 +34,7 @@ import {
 
 import { RECORDING_CONFIG } from "../../src/constants/thresholds";
 import { currentSpeechContext } from "./_layout";
+import { useThemedAlert } from "../../src/components/ui/ThemedAlert";
 
 // Generate a unique ID using expo-crypto
 function generateId(): string {
@@ -117,13 +120,35 @@ function ControlButton({
   );
 }
 
+// Daily practice prompts
+const PRACTICE_PROMPTS = [
+  "Pitch your favorite app to a friend in 60 seconds",
+  "Describe your perfect weekend to someone you just met",
+  "Explain what you do for work to a 10-year-old",
+  "Tell a story about a recent challenge you overcame",
+  "Convince someone to visit your hometown",
+  "Describe your morning routine as an inspirational speech",
+  "Give a 1-minute TED talk on something you're passionate about",
+  "Introduce yourself to a room of 100 strangers",
+  "Explain a complex topic you know well in simple terms",
+  "Describe your biggest accomplishment and what it taught you",
+  "Give a toast at your best friend's wedding",
+  "Pitch a business idea you've been thinking about",
+  "Summarize your favorite book or movie in under a minute",
+  "Describe what makes a great leader in your own words",
+  "Talk about a lesson you learned the hard way",
+];
+
 export default function RecordScreen() {
   const router = useRouter();
+  const { showAlert } = useThemedAlert();
   const [isSaving, setIsSaving] = useState(false);
   const [speechContext, setSpeechContext] = useState<SpeechContext | null>(
     currentSpeechContext,
   );
   const [showEditContext, setShowEditContext] = useState(false);
+  const [isPracticeMode, setIsPracticeMode] = useState(false);
+  const [promptIndex, setPromptIndex] = useState(() => new Date().getDate() % PRACTICE_PROMPTS.length);
 
   // Update context when it changes
   useEffect(() => {
@@ -192,7 +217,9 @@ export default function RecordScreen() {
           duration: duration,
           transcription: null,
           analysis: null,
+          aiFeedback: null,
           speechContext: speechContext,
+          practiceMode: isPracticeMode ? ("free" as const) : undefined,
         };
 
         await addSession(newSession);
@@ -203,10 +230,11 @@ export default function RecordScreen() {
       }
     } catch (error) {
       console.error("Save recording error:", error);
-      Alert.alert(
-        "Error",
-        `Failed to save recording: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+      showAlert({
+        title: "Save Failed",
+        message: `Failed to save recording: ${error instanceof Error ? error.message : "Unknown error"}`,
+        type: "error",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -218,6 +246,7 @@ export default function RecordScreen() {
     resetRecording,
     isSaving,
     speechContext,
+    isPracticeMode,
   ]);
 
   // Handle pause/continue button
@@ -231,10 +260,11 @@ export default function RecordScreen() {
 
   // Handle reset button
   const handleReset = useCallback(() => {
-    Alert.alert(
-      "Reset Recording",
-      "Are you sure you want to reset and start over?",
-      [
+    showAlert({
+      title: "Reset Recording",
+      message: "Are you sure you want to reset and start over?",
+      type: "warning",
+      buttons: [
         { text: "Cancel", style: "cancel" },
         {
           text: "Reset",
@@ -244,8 +274,8 @@ export default function RecordScreen() {
           },
         },
       ],
-    );
-  }, [resetRecording]);
+    });
+  }, [resetRecording, showAlert]);
 
   // Handle context edit
   const handleContextUpdate = (context: SpeechContext) => {
@@ -319,23 +349,80 @@ export default function RecordScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header with back button */}
         <View className="px-6 pt-6 pb-4">
-          <Text
-            className="text-2xl text-white text-center"
-            style={{ fontFamily: "CabinetGrotesk-Bold" }}
+          <View className="flex-row items-center mb-3">
+            <TouchableOpacity
+              onPress={() => router.push("/(tabs)/")}
+              className="mr-3 p-2 rounded-full"
+              style={{ backgroundColor: "#219ebc20" }}
+              activeOpacity={0.7}
+            >
+              <ArrowLeftIcon size={20} color="#8ecae6" />
+            </TouchableOpacity>
+            <View className="flex-1">
+              <Text
+                className="text-2xl text-white"
+                style={{ fontFamily: "CabinetGrotesk-Bold" }}
+              >
+                Record Speech
+              </Text>
+              <Text
+                className="text-secondary-light mt-1"
+                style={{ fontFamily: "CabinetGrotesk-Light" }}
+              >
+                {speechContext?.speechType || "Practice your presentation skills"}
+              </Text>
+            </View>
+          </View>
+
+          {/* Mode Toggle: Analyze vs Practice */}
+          <View
+            className="flex-row rounded-xl overflow-hidden"
+            style={{ backgroundColor: "#011627", borderWidth: 1, borderColor: "#034569" }}
           >
-            Record Speech
-          </Text>
-          <Text
-            className="text-secondary-light text-center mt-1"
-            style={{ fontFamily: "CabinetGrotesk-Light" }}
-          >
-            {speechContext?.speechType || "Practice your presentation skills"}
-          </Text>
+            <TouchableOpacity
+              onPress={() => setIsPracticeMode(false)}
+              className="flex-1 flex-row items-center justify-center py-3"
+              style={{
+                backgroundColor: !isPracticeMode ? "#219ebc" : "transparent",
+              }}
+              activeOpacity={0.7}
+            >
+              <ChartBarIcon size={16} color={!isPracticeMode ? "#ffffff" : "#8ecae6"} />
+              <Text
+                className="ml-2 text-sm"
+                style={{
+                  fontFamily: "CabinetGrotesk-Medium",
+                  color: !isPracticeMode ? "#ffffff" : "#8ecae6",
+                }}
+              >
+                Analyze
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setIsPracticeMode(true)}
+              className="flex-1 flex-row items-center justify-center py-3"
+              style={{
+                backgroundColor: isPracticeMode ? "#ffb703" : "transparent",
+              }}
+              activeOpacity={0.7}
+            >
+              <AcademicCapIcon size={16} color={isPracticeMode ? "#023047" : "#8ecae6"} />
+              <Text
+                className="ml-2 text-sm"
+                style={{
+                  fontFamily: "CabinetGrotesk-Medium",
+                  color: isPracticeMode ? "#023047" : "#8ecae6",
+                }}
+              >
+                Practice
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Speech Context Display with Edit Button */}
@@ -521,7 +608,7 @@ export default function RecordScreen() {
               />
               <ControlButton
                 icon={StopIcon}
-                label="Analyze"
+                label={isPracticeMode ? "Save" : "Analyze"}
                 onPress={handleStop}
                 variant="success"
               />
@@ -552,15 +639,61 @@ export default function RecordScreen() {
             </View>
           )}
 
-          {/* Recording tips */}
-          {!isRecording && duration === 0 && (
+          {/* Daily Prompt - shown in practice mode, tappable to start recording */}
+          {!isRecording && duration === 0 && isPracticeMode && (
+            <TouchableOpacity
+              className="mt-6 mx-4"
+              onPress={handleRecordPress}
+              activeOpacity={0.8}
+            >
+              <View
+                className="rounded-2xl p-5"
+                style={{ backgroundColor: "#011627", borderWidth: 1, borderColor: "#ffb70330" }}
+              >
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text
+                    className="text-xs"
+                    style={{ fontFamily: "CabinetGrotesk-Medium", color: "#ffb703" }}
+                  >
+                    Daily Prompt
+                  </Text>
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      setPromptIndex((prev) => (prev + 1) % PRACTICE_PROMPTS.length);
+                    }}
+                    className="p-2 rounded-full"
+                    style={{ backgroundColor: "#ffb70320" }}
+                    activeOpacity={0.7}
+                  >
+                    <ArrowPathIcon size={14} color="#ffb703" />
+                  </TouchableOpacity>
+                </View>
+                <Text
+                  className="text-white text-base leading-6"
+                  style={{ fontFamily: "CabinetGrotesk-Medium" }}
+                >
+                  "{PRACTICE_PROMPTS[promptIndex]}"
+                </Text>
+                <Text
+                  className="text-xs mt-3"
+                  style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
+                >
+                  Tap card or record button to start
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* Analyze tips - shown in analyze mode */}
+          {!isRecording && duration === 0 && !isPracticeMode && (
             <View className="mt-8 mx-4 bg-background-card rounded-2xl p-6 border border-secondary/20">
               <View className="flex-row items-center justify-center mb-4">
                 <View
                   className="w-10 h-10 rounded-full items-center justify-center"
-                  style={{ backgroundColor: "#ffb70330" }}
+                  style={{ backgroundColor: "#219ebc30" }}
                 >
-                  <LightBulbIcon size={20} color="#ffb703" />
+                  <LightBulbIcon size={20} color="#219ebc" />
                 </View>
                 <Text
                   className="text-white ml-3"

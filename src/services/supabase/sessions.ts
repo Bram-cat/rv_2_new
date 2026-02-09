@@ -6,6 +6,18 @@ import * as FileSystem from "expo-file-system/legacy";
 const SESSIONS_TABLE = "speech_sessions";
 const AUDIO_BUCKET = "audio-recordings";
 
+// Clerk user IDs are NOT valid UUIDs (e.g. "user_2NNE...").
+// If the Supabase column is typed as uuid, passing a Clerk ID causes error 22P02.
+// This helper ensures we only send valid UUIDs to Supabase.
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function sanitizeUserId(userId?: string | null): string | null {
+  if (!userId) return null;
+  // If it's a valid UUID, use it directly
+  if (UUID_REGEX.test(userId)) return userId;
+  // Otherwise, skip sending user_id to avoid Supabase uuid column errors
+  return null;
+}
+
 export interface SupabaseSession {
   id: string;
   created_at: string;
@@ -78,7 +90,7 @@ export async function uploadAudio(
 /**
  * Save session to Supabase
  */
-export async function saveSession(session: RecordingSession): Promise<boolean> {
+export async function saveSession(session: RecordingSession, userId?: string | null): Promise<boolean> {
   if (!isSupabaseConfigured() || !supabase) {
     console.log("Supabase not configured, using local storage only");
     return false;
@@ -100,7 +112,7 @@ export async function saveSession(session: RecordingSession): Promise<boolean> {
       transcription: session.transcription,
       analysis: session.analysis,
       title: session.title || null,
-      user_id: null,
+      user_id: sanitizeUserId(userId),
     };
 
     // Try with all columns first, fall back to base columns on error
@@ -195,16 +207,23 @@ export async function updateSupabaseSession(
 /**
  * Get all sessions from Supabase
  */
-export async function getSupabaseSessions(): Promise<RecordingSession[]> {
+export async function getSupabaseSessions(userId?: string | null): Promise<RecordingSession[]> {
   if (!isSupabaseConfigured() || !supabase) {
     return [];
   }
 
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from(SESSIONS_TABLE)
       .select("*")
       .order("created_at", { ascending: false });
+
+    const safeUserId = sanitizeUserId(userId);
+    if (safeUserId) {
+      query = query.eq("user_id", safeUserId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching sessions from Supabase:", error);

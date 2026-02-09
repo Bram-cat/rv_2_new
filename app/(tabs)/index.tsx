@@ -1,70 +1,19 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   MicrophoneIcon,
-  DocumentTextIcon,
-  ChevronRightIcon,
   ClockIcon,
-  StarIcon,
-  TrashIcon,
-  LightBulbIcon,
-  SpeakerWaveIcon,
-  PauseIcon,
+  ChartBarIcon,
   SparklesIcon,
+  UserCircleIcon,
 } from "react-native-heroicons/outline";
+import { useUser } from "@clerk/clerk-expo";
 
 import { useStorage } from "../../src/hooks/useStorage";
-import { useProgressStats } from "../../src/hooks/useProgressStats";
 import { SessionList } from "../../src/components/sessions/SessionList";
 import { LoadingSpinner } from "../../src/components/ui/LoadingSpinner";
-
-// Feature card component
-function FeatureCard({
-  icon: Icon,
-  title,
-  description,
-  onPress,
-  accentColor = "#ffb703",
-}: {
-  icon: React.ComponentType<{ size: number; color: string }>;
-  title: string;
-  description: string;
-  onPress: () => void;
-  accentColor?: string;
-}) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-background-card rounded-2xl p-5 mb-4 border border-secondary/20"
-      activeOpacity={0.7}
-    >
-      <View className="flex-row items-center">
-        <View
-          className="w-12 h-12 rounded-full items-center justify-center mr-4"
-          style={{ backgroundColor: accentColor + "20" }}
-        >
-          <Icon size={24} color={accentColor} />
-        </View>
-        <View className="flex-1">
-          <Text
-            className="text-lg text-white"
-            style={{ fontFamily: "CabinetGrotesk-Medium" }}
-          >
-            {title}
-          </Text>
-          <Text
-            className="text-sm text-secondary-light mt-1"
-            style={{ fontFamily: "CabinetGrotesk-Light" }}
-          >
-            {description}
-          </Text>
-        </View>
-        <ChevronRightIcon size={20} color="#8ecae6" />
-      </View>
-    </TouchableOpacity>
-  );
-}
+import { useThemedAlert } from "../../src/components/ui/ThemedAlert";
 
 // Stats card component
 function StatsCard({
@@ -99,23 +48,20 @@ function StatsCard({
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { sessions, isLoading, clearAllSessions } = useStorage();
+  const { sessions, isLoading, deleteSession } = useStorage();
+  const { user } = useUser();
+  const { showAlert } = useThemedAlert();
 
-  const handleClearHistory = () => {
-    Alert.alert(
-      "Delete All Sessions",
-      "Are you sure you want to delete all recording history? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            await clearAllSessions();
-          },
-        },
-      ],
-    );
+  const handleDeleteSession = async (id: string) => {
+    try {
+      await deleteSession(id);
+    } catch (error) {
+      showAlert({
+        title: "Delete Failed",
+        message: "Failed to delete session.",
+        type: "error",
+      });
+    }
   };
 
   // Calculate stats
@@ -123,16 +69,18 @@ export default function HomeScreen() {
   const totalMinutes = Math.round(
     sessions.reduce((acc, s) => acc + (s.duration || 0), 0) / 60000,
   );
+  const scoredSessions = sessions.filter(
+    (s) => s.aiFeedback?.overallScore || s.analysis?.score?.overallScore,
+  );
   const averageScore =
-    sessions.length > 0
+    scoredSessions.length > 0
       ? Math.round(
-          sessions
-            .filter((s) => s.analysis?.score?.overallScore)
-            .reduce((acc, s) => acc + (s.analysis?.score?.overallScore || 0), 0) /
-            Math.max(
-              sessions.filter((s) => s.analysis?.score?.overallScore).length,
-              1,
-            ),
+          scoredSessions.reduce((acc, s) => {
+            // Prefer AI score (1-10), fall back to local score (1-5 scaled to 10)
+            const aiScore = s.aiFeedback?.overallScore || 0;
+            const localScore = (s.analysis?.score?.overallScore || 0) * 2;
+            return acc + (aiScore || localScore);
+          }, 0) / scoredSessions.length,
         )
       : 0;
 
@@ -145,20 +93,58 @@ export default function HomeScreen() {
       >
         {/* Header */}
         <View className="px-6 pt-6 pb-4">
-          <View className="flex-row items-center mb-2">
-            <SparklesIcon size={28} color="#ffb703" />
-            <Text
-              className="text-3xl text-white ml-2"
-              style={{ fontFamily: "CabinetGrotesk-Bold" }}
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center">
+              <SparklesIcon size={28} color="#ffb703" />
+              <Text
+                className="text-3xl text-white ml-2"
+                style={{ fontFamily: "CabinetGrotesk-Bold" }}
+              >
+                Speechi
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                if (user) {
+                  router.push("/profile");
+                } else {
+                  router.push("/sign-in");
+                }
+              }}
+              activeOpacity={0.7}
             >
-              Speechi
-            </Text>
+              {user?.imageUrl ? (
+                <Image
+                  source={{ uri: user.imageUrl }}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    borderWidth: 2,
+                    borderColor: "#ffb703",
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: "#034569",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <UserCircleIcon size={24} color="#8ecae6" />
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
           <Text
             className="text-secondary-light"
             style={{ fontFamily: "CabinetGrotesk-Light" }}
           >
-            Improve your presentation skills
+            {user ? `Welcome back, ${user.firstName || "speaker"}!` : "Improve your presentation skills"}
           </Text>
         </View>
 
@@ -178,36 +164,12 @@ export default function HomeScreen() {
               color="#219ebc"
             />
             <StatsCard
-              icon={StarIcon}
-              value={averageScore > 0 ? `${averageScore}%` : "-"}
+              icon={ChartBarIcon}
+              value={averageScore > 0 ? `${averageScore}/10` : "-"}
               label="Avg Score"
               color="#fb8500"
             />
           </View>
-        </View>
-
-        {/* Quick Actions */}
-        <View className="px-6 mb-6">
-          <Text
-            className="text-lg text-white mb-3"
-            style={{ fontFamily: "CabinetGrotesk-Medium" }}
-          >
-            Quick Actions
-          </Text>
-          <FeatureCard
-            icon={MicrophoneIcon}
-            title="Start Recording"
-            description="Practice your speech and get AI feedback"
-            onPress={() => router.push("/(tabs)/record")}
-            accentColor="#ffb703"
-          />
-          <FeatureCard
-            icon={DocumentTextIcon}
-            title="Analyze Slides"
-            description="Get feedback on your presentation slides"
-            onPress={() => router.push("/(tabs)/ppt-analyzer")}
-            accentColor="#219ebc"
-          />
         </View>
 
         {/* Recent Sessions */}
@@ -219,23 +181,16 @@ export default function HomeScreen() {
             >
               Recent Sessions
             </Text>
-            <View className="flex-row gap-3">
-              {sessions.length > 0 && (
-                <TouchableOpacity onPress={handleClearHistory}>
-                  <TrashIcon size={20} color="#fb8500" />
-                </TouchableOpacity>
-              )}
-              {sessions.length > 3 && (
-                <TouchableOpacity onPress={() => router.push("/history")}>
-                  <Text
-                    className="text-accent"
-                    style={{ fontFamily: "CabinetGrotesk-Medium" }}
-                  >
-                    View All
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            {sessions.length > 0 && (
+              <TouchableOpacity onPress={() => router.push("/history")}>
+                <Text
+                  className="text-accent"
+                  style={{ fontFamily: "CabinetGrotesk-Medium" }}
+                >
+                  View All
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {isLoading ? (
@@ -244,10 +199,11 @@ export default function HomeScreen() {
             <SessionList
               sessions={sessions}
               isLoading={isLoading}
-              maxItems={3}
+              maxItems={5}
+              onDeleteSession={handleDeleteSession}
             />
           ) : (
-            <View className="bg-background-card rounded-2xl p-6 items-center border border-secondary/20">
+            <View className="bg-background-card rounded-2xl p-8 items-center border border-secondary/20">
               <MicrophoneIcon size={48} color="#8ecae6" />
               <Text
                 className="text-white mt-4 text-center"
@@ -256,52 +212,13 @@ export default function HomeScreen() {
                 No recordings yet
               </Text>
               <Text
-                className="text-secondary-light text-center mt-1 text-sm"
+                className="text-secondary-light text-center mt-2 text-sm"
                 style={{ fontFamily: "CabinetGrotesk-Light" }}
               >
-                Start your first practice session to see your progress
+                Tap the button below to start practicing
               </Text>
             </View>
           )}
-        </View>
-
-        {/* Tips Section */}
-        <View className="px-6 mt-6">
-          <Text
-            className="text-lg text-white mb-3"
-            style={{ fontFamily: "CabinetGrotesk-Medium" }}
-          >
-            Quick Tips
-          </Text>
-          <View className="bg-background-card rounded-2xl p-5 border border-secondary/20">
-            <View className="flex-row items-start mb-3">
-              <LightBulbIcon size={20} color="#ffb703" />
-              <Text
-                className="text-secondary-light ml-3 flex-1"
-                style={{ fontFamily: "CabinetGrotesk-Light" }}
-              >
-                Speak at 120-160 words per minute for optimal clarity
-              </Text>
-            </View>
-            <View className="flex-row items-start mb-3">
-              <SpeakerWaveIcon size={20} color="#219ebc" />
-              <Text
-                className="text-secondary-light ml-3 flex-1"
-                style={{ fontFamily: "CabinetGrotesk-Light" }}
-              >
-                Avoid filler words like "um", "uh", and "like"
-              </Text>
-            </View>
-            <View className="flex-row items-start">
-              <PauseIcon size={20} color="#fb8500" />
-              <Text
-                className="text-secondary-light ml-3 flex-1"
-                style={{ fontFamily: "CabinetGrotesk-Light" }}
-              >
-                Use strategic pauses to emphasize key points
-              </Text>
-            </View>
-          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

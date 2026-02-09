@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { RecordingSession } from "../types/recording";
 import * as storage from "../services/storage/asyncStorage";
 import * as supabaseStorage from "../services/supabase/sessions";
 import { isSupabaseConfigured } from "../services/supabase/client";
+import { useAuth } from "@clerk/clerk-expo";
 
 interface StorageState {
   sessions: RecordingSession[];
@@ -11,17 +12,19 @@ interface StorageState {
 }
 
 export function useStorage() {
+  const { userId } = useAuth();
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
   const [state, setState] = useState<StorageState>({
     sessions: [],
     isLoading: true,
     error: null,
   });
 
-  // Load sessions on mount
+  // Load sessions on mount and when userId changes
   const loadAllSessions = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
-      const loaded = await storage.loadSessions();
+      const loaded = await storage.loadSessions(userId);
       setState({
         sessions: loaded,
         isLoading: false,
@@ -34,26 +37,30 @@ export function useStorage() {
         error: "Failed to load sessions",
       }));
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
-    loadAllSessions();
-  }, [loadAllSessions]);
+    // Reload sessions when user changes (sign in / sign out)
+    if (prevUserIdRef.current !== userId) {
+      prevUserIdRef.current = userId;
+      loadAllSessions();
+    }
+  }, [userId, loadAllSessions]);
 
   // Add a new session
   const addSession = useCallback(async (session: RecordingSession) => {
     try {
-      // Save to local storage first
-      await storage.addSession(session);
+      // Save to local storage first (scoped by user)
+      await storage.addSession(session, userId);
       setState((prev) => ({
         ...prev,
         sessions: [session, ...prev.sessions],
         error: null,
       }));
 
-      // Also save to Supabase if configured (in background)
+      // Also save to Supabase if configured (in background, with userId)
       if (isSupabaseConfigured()) {
-        supabaseStorage.saveSession(session).catch(console.error);
+        supabaseStorage.saveSession(session, userId).catch(console.error);
       }
     } catch (error) {
       setState((prev) => ({
@@ -62,13 +69,13 @@ export function useStorage() {
       }));
       throw error;
     }
-  }, []);
+  }, [userId]);
 
   // Update an existing session
   const updateSession = useCallback(
     async (id: string, updates: Partial<RecordingSession>) => {
       try {
-        await storage.updateSession(id, updates);
+        await storage.updateSession(id, updates, userId);
         setState((prev) => ({
           ...prev,
           sessions: prev.sessions.map((s) =>
@@ -89,13 +96,13 @@ export function useStorage() {
         throw error;
       }
     },
-    []
+    [userId]
   );
 
   // Delete a session
   const deleteSession = useCallback(async (id: string) => {
     try {
-      await storage.deleteSession(id);
+      await storage.deleteSession(id, userId);
       setState((prev) => ({
         ...prev,
         sessions: prev.sessions.filter((s) => s.id !== id),
@@ -108,7 +115,7 @@ export function useStorage() {
       }));
       throw error;
     }
-  }, []);
+  }, [userId]);
 
   // Get a session by ID (from local state)
   const getSessionById = useCallback(
@@ -121,7 +128,7 @@ export function useStorage() {
   // Clear all sessions
   const clearAllSessions = useCallback(async () => {
     try {
-      await storage.clearAllSessions();
+      await storage.clearAllSessions(userId);
       setState({
         sessions: [],
         isLoading: false,
@@ -134,7 +141,7 @@ export function useStorage() {
       }));
       throw error;
     }
-  }, []);
+  }, [userId]);
 
   return {
     sessions: state.sessions,

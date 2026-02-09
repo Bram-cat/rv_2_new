@@ -10,6 +10,7 @@ interface SessionListProps {
   emptyMessage?: string;
   showAll?: boolean;
   maxItems?: number;
+  onDeleteSession?: (id: string) => void;
 }
 
 export function SessionList({
@@ -18,6 +19,7 @@ export function SessionList({
   emptyMessage = "No recordings yet",
   showAll = false,
   maxItems = 5,
+  onDeleteSession,
 }: SessionListProps) {
   const router = useRouter();
 
@@ -54,6 +56,9 @@ export function SessionList({
           key={session.id}
           session={session}
           onPress={() => handleSessionPress(session)}
+          onDelete={
+            onDeleteSession ? () => onDeleteSession(session.id) : undefined
+          }
         />
       ))}
 

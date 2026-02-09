@@ -27,8 +27,11 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "RECORD_AUDIO"
-      ]
+        "RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.cowman234.speechiapp"
     },
     "web": {
       "favicon": "./assets/middle_icon.png",
@@ -44,6 +47,12 @@
       "expo-router",
       "expo-font",
       "expo-document-picker"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9ce09868-e21d-4205-8bcc-fc84e33984a9"
+      }
+    }
   }
 }

@@ -2,16 +2,6 @@ import { Tabs, useRouter } from "expo-router";
 import { View, TouchableOpacity, Image } from "react-native";
 import { useState } from "react";
 import {
-  HomeIcon,
-  AcademicCapIcon,
-  DocumentTextIcon,
-} from "react-native-heroicons/outline";
-import {
-  HomeIcon as HomeIconSolid,
-  AcademicCapIcon as AcademicCapIconSolid,
-  DocumentTextIcon as DocumentTextIconSolid,
-} from "react-native-heroicons/solid";
-import {
   SpeechContextModal,
   SpeechContext,
 } from "../../src/components/modals/SpeechContextModal";
@@ -70,25 +60,7 @@ export default function TabLayout() {
           options={{
             title: "Home",
             headerShown: false,
-            tabBarIcon: ({ color, focused }) =>
-              focused ? (
-                <HomeIconSolid size={24} color={color} />
-              ) : (
-                <HomeIcon size={24} color={color} />
-              ),
-          }}
-        />
-        <Tabs.Screen
-          name="practice"
-          options={{
-            title: "Practice",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) =>
-              focused ? (
-                <AcademicCapIconSolid size={24} color={color} />
-              ) : (
-                <AcademicCapIcon size={24} color={color} />
-              ),
+            href: null,
           }}
         />
         <Tabs.Screen
@@ -96,12 +68,13 @@ export default function TabLayout() {
           options={{
             title: "Record",
             headerShown: false,
+            tabBarStyle: { display: "none" },
             tabBarButton: () => (
               <TouchableOpacity
                 onPress={handleRecordPress}
                 activeOpacity={0.8}
                 style={{
-                  top: -20,
+                  flex: 1,
                   justifyContent: "center",
                   alignItems: "center",
                 }}
@@ -122,6 +95,7 @@ export default function TabLayout() {
                     borderWidth: 4,
                     borderColor: "#011627",
                     overflow: "hidden",
+                    top: -20,
                   }}
                 >
                   <Image
@@ -142,12 +116,7 @@ export default function TabLayout() {
           options={{
             title: "Slides",
             headerShown: false,
-            tabBarIcon: ({ color, focused }) =>
-              focused ? (
-                <DocumentTextIconSolid size={24} color={color} />
-              ) : (
-                <DocumentTextIcon size={24} color={color} />
-              ),
+            href: null,
           }}
         />
       </Tabs>

@@ -1,15 +1,19 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RecordingSession } from "../../types/recording";
 
-const SESSIONS_KEY = "@speech_pitch_sessions";
+const SESSIONS_KEY_PREFIX = "@speech_pitch_sessions";
+
+function getKey(userId?: string | null): string {
+  return userId ? `${SESSIONS_KEY_PREFIX}_${userId}` : SESSIONS_KEY_PREFIX;
+}
 
 /**
  * Save all sessions to AsyncStorage
  */
-export async function saveSessions(sessions: RecordingSession[]): Promise<void> {
+export async function saveSessions(sessions: RecordingSession[], userId?: string | null): Promise<void> {
   try {
     const jsonValue = JSON.stringify(sessions);
-    await AsyncStorage.setItem(SESSIONS_KEY, jsonValue);
+    await AsyncStorage.setItem(getKey(userId), jsonValue);
   } catch (error) {
     console.error("Error saving sessions:", error);
     throw new Error("Failed to save sessions");
@@ -19,9 +23,9 @@ export async function saveSessions(sessions: RecordingSession[]): Promise<void> 
 /**
  * Load all sessions from AsyncStorage
  */
-export async function loadSessions(): Promise<RecordingSession[]> {
+export async function loadSessions(userId?: string | null): Promise<RecordingSession[]> {
   try {
-    const jsonValue = await AsyncStorage.getItem(SESSIONS_KEY);
+    const jsonValue = await AsyncStorage.getItem(getKey(userId));
     if (jsonValue === null) {
       return [];
     }
@@ -35,10 +39,10 @@ export async function loadSessions(): Promise<RecordingSession[]> {
 /**
  * Add a new session to storage
  */
-export async function addSession(session: RecordingSession): Promise<void> {
-  const sessions = await loadSessions();
+export async function addSession(session: RecordingSession, userId?: string | null): Promise<void> {
+  const sessions = await loadSessions(userId);
   sessions.unshift(session); // Add to beginning (most recent first)
-  await saveSessions(sessions);
+  await saveSessions(sessions, userId);
 }
 
 /**
@@ -46,9 +50,10 @@ export async function addSession(session: RecordingSession): Promise<void> {
  */
 export async function updateSession(
   id: string,
-  updates: Partial<RecordingSession>
+  updates: Partial<RecordingSession>,
+  userId?: string | null,
 ): Promise<void> {
-  const sessions = await loadSessions();
+  const sessions = await loadSessions(userId);
   const index = sessions.findIndex((s) => s.id === id);
 
   if (index === -1) {
@@ -56,37 +61,37 @@ export async function updateSession(
   }
 
   sessions[index] = { ...sessions[index], ...updates };
-  await saveSessions(sessions);
+  await saveSessions(sessions, userId);
 }
 
 /**
  * Delete a session by ID
  */
-export async function deleteSession(id: string): Promise<void> {
-  const sessions = await loadSessions();
+export async function deleteSession(id: string, userId?: string | null): Promise<void> {
+  const sessions = await loadSessions(userId);
   const filtered = sessions.filter((s) => s.id !== id);
 
   if (filtered.length === sessions.length) {
     throw new Error(`Session with id ${id} not found`);
   }
 
-  await saveSessions(filtered);
+  await saveSessions(filtered, userId);
 }
 
 /**
  * Get a single session by ID
  */
-export async function getSession(id: string): Promise<RecordingSession | null> {
-  const sessions = await loadSessions();
+export async function getSession(id: string, userId?: string | null): Promise<RecordingSession | null> {
+  const sessions = await loadSessions(userId);
   return sessions.find((s) => s.id === id) || null;
 }
 
 /**
  * Clear all sessions (use with caution)
  */
-export async function clearAllSessions(): Promise<void> {
+export async function clearAllSessions(userId?: string | null): Promise<void> {
   try {
-    await AsyncStorage.removeItem(SESSIONS_KEY);
+    await AsyncStorage.removeItem(getKey(userId));
   } catch (error) {
     console.error("Error clearing sessions:", error);
     throw new Error("Failed to clear sessions");
@@ -96,7 +101,7 @@ export async function clearAllSessions(): Promise<void> {
 /**
  * Get the total number of sessions
  */
-export async function getSessionCount(): Promise<number> {
-  const sessions = await loadSessions();
+export async function getSessionCount(userId?: string | null): Promise<number> {
+  const sessions = await loadSessions(userId);
   return sessions.length;
 }

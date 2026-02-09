@@ -203,9 +203,9 @@ export default function ChallengeRecordScreen() {
         {/* Timer */}
         <View className="items-center mb-8">
           <Timer
-            duration={duration}
-            maxDuration={targetDuration}
-            showWarning={isNearEnd}
+            durationMs={duration}
+            maxDurationMs={targetDuration}
+            showRemaining={isNearEnd}
           />
           <Text
             className={`text-sm mt-2 ${
@@ -241,7 +241,6 @@ export default function ChallengeRecordScreen() {
         <View className="items-center">
           <RecordButton
             isRecording={isRecording}
-            isPaused={isPaused}
             onPress={isRecording ? handleStopAndAnalyze : handleStartRecording}
           />
         </View>

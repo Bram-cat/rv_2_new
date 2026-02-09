@@ -1,7 +1,14 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  ArrowLeftIcon,
+  PlayIcon,
+  PauseIcon,
+  StopIcon,
+  ArrowPathIcon,
+  MicrophoneIcon,
+} from "react-native-heroicons/outline";
 import * as Crypto from "expo-crypto";
 
 import { usePermissions } from "../../src/hooks/usePermissions";
@@ -70,11 +77,17 @@ export default function FreePracticeScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
         <View className="flex-1 items-center justify-center px-6">
-          <Ionicons name="mic-off-outline" size={64} color="#e29578" />
-          <Text className="text-xl font-semibold text-primary-dark mt-4 text-center">
+          <MicrophoneIcon size={64} color="#fb8500" />
+          <Text
+            className="text-xl text-white mt-4 text-center"
+            style={{ fontFamily: "CabinetGrotesk-Bold" }}
+          >
             Microphone Access Required
           </Text>
-          <Text className="text-secondary-dark text-center mt-2">
+          <Text
+            className="text-center mt-2"
+            style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
+          >
             Please enable microphone access in settings to record your practice
             sessions.
           </Text>
@@ -88,15 +101,25 @@ export default function FreePracticeScreen() {
       {/* Header */}
       <View className="px-6 pt-6 pb-4">
         <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <Ionicons name="arrow-back" size={24} color="#006d77" />
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="mr-3 p-2 rounded-full"
+            style={{ backgroundColor: "#219ebc20" }}
+            activeOpacity={0.7}
+          >
+            <ArrowLeftIcon size={20} color="#8ecae6" />
           </TouchableOpacity>
           <View>
-            <Text className="text-2xl font-bold text-primary-dark">
+            <Text
+              className="text-2xl text-white"
+              style={{ fontFamily: "CabinetGrotesk-Bold" }}
+            >
               Free Practice
             </Text>
-            <Text className="text-secondary-dark">
-              Unlimited recording with AI feedback
+            <Text
+              style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
+            >
+              Record with AI feedback
             </Text>
           </View>
         </View>
@@ -106,79 +129,148 @@ export default function FreePracticeScreen() {
       <View className="flex-1 items-center justify-center px-6">
         {/* Timer */}
         <View className="mb-8">
-          <Timer duration={duration} maxDuration={300000} showWarning={false} />
+          <Timer durationMs={duration} showRemaining={false} />
         </View>
 
-        {/* Tips when not recording */}
-        {!isRecording && (
-          <View className="bg-primary-light rounded-2xl p-5 mb-8 w-full">
-            <Text className="text-sm font-semibold text-primary-dark mb-3">
-              Quick Tips
+        {/* Status indicator */}
+        {isRecording && (
+          <View
+            className="mb-6 flex-row items-center px-4 py-2 rounded-full"
+            style={{
+              backgroundColor: isPaused ? "#fb850030" : "#ffb70330",
+            }}
+          >
+            {isPaused ? (
+              <PauseIcon size={18} color="#fb8500" />
+            ) : (
+              <View
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: "#ffb703" }}
+              />
+            )}
+            <Text
+              className="text-sm ml-2"
+              style={{
+                fontFamily: "CabinetGrotesk-Medium",
+                color: isPaused ? "#fb8500" : "#ffb703",
+              }}
+            >
+              {isPaused ? "Paused" : "Recording..."}
             </Text>
-            <View className="flex-row items-start mb-2">
-              <Ionicons name="checkmark-circle" size={16} color="#006d77" />
-              <Text className="text-sm text-primary-dark ml-2 flex-1">
-                Speak naturally, as if presenting to a real audience
-              </Text>
-            </View>
-            <View className="flex-row items-start mb-2">
-              <Ionicons name="checkmark-circle" size={16} color="#006d77" />
-              <Text className="text-sm text-primary-dark ml-2 flex-1">
-                Try to minimize filler words like "um" and "uh"
-              </Text>
-            </View>
-            <View className="flex-row items-start">
-              <Ionicons name="checkmark-circle" size={16} color="#006d77" />
-              <Text className="text-sm text-primary-dark ml-2 flex-1">
-                Aim for 120-160 words per minute
-              </Text>
-            </View>
           </View>
         )}
 
         {/* Record Button */}
         <RecordButton
           isRecording={isRecording}
-          isPaused={isPaused}
           onPress={isRecording ? handleStopAndAnalyze : handleStartRecording}
         />
 
         {/* Recording Controls */}
         {isRecording && (
-          <View className="flex-row items-center mt-8 gap-4">
+          <View className="flex-row items-center mt-10 gap-8">
             <TouchableOpacity
               onPress={handlePauseResume}
-              className="bg-secondary-light w-14 h-14 rounded-full items-center justify-center"
+              className="items-center"
+              activeOpacity={0.7}
             >
-              <Ionicons
-                name={isPaused ? "play" : "pause"}
-                size={24}
-                color="#006d77"
-              />
+              <View
+                className="w-16 h-16 rounded-full items-center justify-center"
+                style={{
+                  backgroundColor: "#219ebc",
+                  shadowColor: "#219ebc",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                {isPaused ? (
+                  <PlayIcon size={26} color="#ffffff" strokeWidth={2} />
+                ) : (
+                  <PauseIcon size={26} color="#ffffff" strokeWidth={2} />
+                )}
+              </View>
+              <Text
+                className="text-xs mt-2"
+                style={{
+                  fontFamily: "CabinetGrotesk-Medium",
+                  color: "#8ecae6",
+                }}
+              >
+                {isPaused ? "Resume" : "Pause"}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={handleStopAndAnalyze}
-              className="bg-primary w-14 h-14 rounded-full items-center justify-center"
+              className="items-center"
+              activeOpacity={0.7}
             >
-              <Ionicons name="checkmark" size={24} color="#ffffff" />
+              <View
+                className="w-16 h-16 rounded-full items-center justify-center"
+                style={{
+                  backgroundColor: "#ffb703",
+                  shadowColor: "#ffb703",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                <StopIcon size={26} color="#023047" strokeWidth={2} />
+              </View>
+              <Text
+                className="text-xs mt-2"
+                style={{
+                  fontFamily: "CabinetGrotesk-Medium",
+                  color: "#8ecae6",
+                }}
+              >
+                Save
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={resetRecording}
-              className="bg-accent/20 w-14 h-14 rounded-full items-center justify-center"
+              className="items-center"
+              activeOpacity={0.7}
             >
-              <Ionicons name="refresh" size={24} color="#e29578" />
+              <View
+                className="w-16 h-16 rounded-full items-center justify-center"
+                style={{
+                  backgroundColor: "#fb8500",
+                  shadowColor: "#fb8500",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                <ArrowPathIcon size={26} color="#ffffff" strokeWidth={2} />
+              </View>
+              <Text
+                className="text-xs mt-2"
+                style={{
+                  fontFamily: "CabinetGrotesk-Medium",
+                  color: "#8ecae6",
+                }}
+              >
+                Reset
+              </Text>
             </TouchableOpacity>
           </View>
         )}
 
         {/* Status Text */}
-        <Text className="text-secondary-dark mt-6 text-center">
+        <Text
+          className="mt-6 text-center"
+          style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
+        >
           {isRecording
             ? isPaused
-              ? "Recording paused - tap play to continue"
-              : "Recording... tap the checkmark when done"
+              ? "Paused — tap play to continue"
+              : "Speak naturally, stop when done"
             : "Tap to start recording"}
         </Text>
       </View>

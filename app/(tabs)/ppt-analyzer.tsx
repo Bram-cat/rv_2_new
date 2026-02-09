@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as DocumentPicker from "expo-document-picker";
 import {
@@ -10,8 +10,11 @@ import {
   SparklesIcon,
   WrenchScrewdriverIcon,
 } from "react-native-heroicons/outline";
+import { useThemedAlert } from "../../src/components/ui/ThemedAlert";
 
 export default function PPTAnalyzerScreen() {
+  const { showAlert } = useThemedAlert();
+
   const handlePickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -25,17 +28,21 @@ export default function PPTAnalyzerScreen() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const file = result.assets[0];
-        Alert.alert(
-          "File Selected",
-          `Name: ${file.name}\nSize: ${(file.size! / 1024).toFixed(2)} KB\n\nNote: This feature is coming soon!`,
-          [{ text: "OK" }]
-        );
+        showAlert({
+          title: "File Selected",
+          message: `Name: ${file.name}\nSize: ${(file.size! / 1024).toFixed(2)} KB\n\nNote: This feature is coming soon!`,
+          type: "info",
+        });
         // TODO: Implement file upload and analysis
         console.log("Selected file:", file);
       }
     } catch (err) {
       console.error("Error picking document:", err);
-      Alert.alert("Error", "Failed to pick document");
+      showAlert({
+        title: "Error",
+        message: "Failed to pick document",
+        type: "error",
+      });
     }
   };
   return (
