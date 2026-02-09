@@ -2,7 +2,7 @@
   "expo": {
     "name": "Speechi",
     "slug": "speechi-app",
-    "version": "1.0.0",
+    "version": "1.9.0",
     "orientation": "portrait",
     "icon": "./assets/middle_icon.png",
     "userInterfaceStyle": "dark",
@@ -37,17 +37,7 @@
       "favicon": "./assets/middle_icon.png",
       "bundler": "metro"
     },
-    "plugins": [
-      [
-        "expo-audio",
-        {
-          "microphonePermission": "Speechi needs access to your microphone for recording."
-        }
-      ],
-      "expo-router",
-      "expo-font",
-      "expo-document-picker"
-    ],
+    "plugins": ["expo-router", "expo-font", "expo-document-picker"],
     "extra": {
       "router": {},
       "eas": {

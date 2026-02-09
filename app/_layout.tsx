@@ -8,7 +8,10 @@ import { useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
 import { tokenCache } from "../src/services/auth/tokenCache";
-import { initRevenueCat, identifyUser } from "../src/services/paywall/revenueCat";
+import {
+  initRevenueCat,
+  identifyUser,
+} from "../src/services/paywall/revenueCat";
 import { ThemedAlertProvider } from "../src/components/ui/ThemedAlert";
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
@@ -51,7 +54,10 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+      tokenCache={tokenCache}
+    >
       <ClerkLoaded>
         <View style={{ flex: 1 }}>
           <SafeAreaProvider>
@@ -93,7 +99,10 @@ function AppNavigator() {
           fontWeight: "600",
         },
         animation: "slide_from_right",
-        animationDuration: 250,
+        animationDuration: 300,
+        animationTypeForReplace: "push",
+        gestureEnabled: true,
+        gestureDirection: "horizontal",
       }}
     >
       <Stack.Screen
@@ -184,7 +193,10 @@ function AppNavigator() {
           headerShown: false,
           presentation: "card",
           animation: "slide_from_right",
-          animationDuration: 250,
+          animationDuration: 300,
+          gestureEnabled: true,
+          gestureDirection: "horizontal",
+          animationTypeForReplace: "push",
         }}
       />
     </Stack>

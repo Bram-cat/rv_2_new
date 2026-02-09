@@ -1,8 +1,21 @@
-import { View, Text, TouchableOpacity, Image, Linking, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Linking,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useState, useEffect } from "react";
+import Animated, {
+  FadeInRight,
+  FadeOutLeft,
+  SlideInRight,
+  SlideOutLeft,
+} from "react-native-reanimated";
 import {
   ChevronLeftIcon,
   CreditCardIcon,
@@ -74,7 +87,11 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#023047" }}>
-      <View className="flex-1 px-6 py-4">
+      <Animated.View
+        entering={SlideInRight.duration(300).springify()}
+        exiting={SlideOutLeft.duration(250)}
+        className="flex-1 px-6 py-4"
+      >
         {/* Back button */}
         <TouchableOpacity
           onPress={() => router.back()}
@@ -91,7 +108,10 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {/* Avatar & Info */}
-        <View className="items-center mb-8">
+        <Animated.View
+          entering={FadeInRight.delay(100).duration(400).springify()}
+          className="items-center mb-8"
+        >
           {user?.imageUrl ? (
             <Image
               source={{ uri: user.imageUrl }}
@@ -147,10 +167,11 @@ export default function ProfileScreen() {
               </Text>
             </View>
           )}
-        </View>
+        </Animated.View>
 
         {/* Usage Stats */}
-        <View
+        <Animated.View
+          entering={FadeInRight.delay(200).duration(400).springify()}
           className="rounded-2xl p-4 mb-6"
           style={{
             backgroundColor: "#011627",
@@ -172,66 +193,78 @@ export default function ProfileScreen() {
               ? "Unlimited analyses (Pro)"
               : `${usageCount} / ${FREE_LIMIT} free analyses used`}
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Actions */}
         {!isPro && (
-          <TouchableOpacity
-            onPress={() => router.push("/paywall")}
-            className="rounded-2xl p-4 mb-3 flex-row items-center"
-            style={{ backgroundColor: "#ffb703" }}
-            activeOpacity={0.8}
+          <Animated.View
+            entering={FadeInRight.delay(300).duration(400).springify()}
           >
-            <SparklesIcon size={20} color="#023047" />
-            <Text
-              className="ml-3 flex-1"
-              style={{ fontFamily: "CabinetGrotesk-Bold", color: "#023047" }}
+            <TouchableOpacity
+              onPress={() => router.push("/paywall")}
+              className="rounded-2xl p-4 mb-3 flex-row items-center"
+              style={{ backgroundColor: "#ffb703" }}
+              activeOpacity={0.8}
             >
-              Upgrade to Pro
-            </Text>
-          </TouchableOpacity>
+              <SparklesIcon size={20} color="#023047" />
+              <Text
+                className="ml-3 flex-1"
+                style={{ fontFamily: "CabinetGrotesk-Bold", color: "#023047" }}
+              >
+                Upgrade to Pro
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
         )}
 
         {isPro && (
+          <Animated.View
+            entering={FadeInRight.delay(300).duration(400).springify()}
+          >
+            <TouchableOpacity
+              onPress={handleManageSubscription}
+              className="rounded-2xl p-4 mb-3 flex-row items-center"
+              style={{
+                backgroundColor: "#011627",
+                borderWidth: 1,
+                borderColor: "#034569",
+              }}
+              activeOpacity={0.7}
+            >
+              <CreditCardIcon size={20} color="#8ecae6" />
+              <Text
+                className="ml-3 flex-1 text-white"
+                style={{ fontFamily: "CabinetGrotesk-Medium" }}
+              >
+                Manage Subscription
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        <Animated.View
+          entering={FadeInRight.delay(400).duration(400).springify()}
+        >
           <TouchableOpacity
-            onPress={handleManageSubscription}
+            onPress={handleSignOut}
             className="rounded-2xl p-4 mb-3 flex-row items-center"
             style={{
               backgroundColor: "#011627",
               borderWidth: 1,
-              borderColor: "#034569",
+              borderColor: "#fb8500",
             }}
             activeOpacity={0.7}
           >
-            <CreditCardIcon size={20} color="#8ecae6" />
+            <ArrowRightOnRectangleIcon size={20} color="#fb8500" />
             <Text
-              className="ml-3 flex-1 text-white"
-              style={{ fontFamily: "CabinetGrotesk-Medium" }}
+              className="ml-3 flex-1"
+              style={{ fontFamily: "CabinetGrotesk-Medium", color: "#fb8500" }}
             >
-              Manage Subscription
+              Sign Out
             </Text>
           </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          onPress={handleSignOut}
-          className="rounded-2xl p-4 mb-3 flex-row items-center"
-          style={{
-            backgroundColor: "#011627",
-            borderWidth: 1,
-            borderColor: "#fb8500",
-          }}
-          activeOpacity={0.7}
-        >
-          <ArrowRightOnRectangleIcon size={20} color="#fb8500" />
-          <Text
-            className="ml-3 flex-1"
-            style={{ fontFamily: "CabinetGrotesk-Medium", color: "#fb8500" }}
-          >
-            Sign Out
-          </Text>
-        </TouchableOpacity>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </SafeAreaView>
   );
 }

@@ -53,6 +53,7 @@ export default function TabLayout() {
             fontFamily: "CabinetGrotesk-Bold",
             fontWeight: "600",
           },
+          animation: "shift",
         }}
       >
         <Tabs.Screen

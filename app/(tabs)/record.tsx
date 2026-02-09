@@ -3,6 +3,13 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Animated, {
+  FadeIn,
+  FadeInRight,
+  FadeOut,
+  SlideInRight,
+  SlideOutRight,
+} from "react-native-reanimated";
 import {
   MicrophoneIcon,
   PlayIcon,
@@ -148,7 +155,9 @@ export default function RecordScreen() {
   );
   const [showEditContext, setShowEditContext] = useState(false);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
-  const [promptIndex, setPromptIndex] = useState(() => new Date().getDate() % PRACTICE_PROMPTS.length);
+  const [promptIndex, setPromptIndex] = useState(
+    () => new Date().getDate() % PRACTICE_PROMPTS.length,
+  );
 
   // Update context when it changes
   useEffect(() => {
@@ -347,433 +356,472 @@ export default function RecordScreen() {
   // Main recording state
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}
-        showsVerticalScrollIndicator={false}
+      <Animated.View
+        entering={FadeIn.duration(300)}
+        exiting={FadeOut.duration(200)}
+        style={{ flex: 1 }}
       >
-        {/* Header with back button */}
-        <View className="px-6 pt-6 pb-4">
-          <View className="flex-row items-center mb-3">
-            <TouchableOpacity
-              onPress={() => router.push("/(tabs)/")}
-              className="mr-3 p-2 rounded-full"
-              style={{ backgroundColor: "#219ebc20" }}
-              activeOpacity={0.7}
-            >
-              <ArrowLeftIcon size={20} color="#8ecae6" />
-            </TouchableOpacity>
-            <View className="flex-1">
-              <Text
-                className="text-2xl text-white"
-                style={{ fontFamily: "CabinetGrotesk-Bold" }}
-              >
-                Record Speech
-              </Text>
-              <Text
-                className="text-secondary-light mt-1"
-                style={{ fontFamily: "CabinetGrotesk-Light" }}
-              >
-                {speechContext?.speechType || "Practice your presentation skills"}
-              </Text>
-            </View>
-          </View>
-
-          {/* Mode Toggle: Analyze vs Practice */}
-          <View
-            className="flex-row rounded-xl overflow-hidden"
-            style={{ backgroundColor: "#011627", borderWidth: 1, borderColor: "#034569" }}
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header with back button */}
+          <Animated.View
+            entering={FadeInRight.delay(50).duration(300).springify()}
+            className="px-6 pt-6 pb-4"
           >
-            <TouchableOpacity
-              onPress={() => setIsPracticeMode(false)}
-              className="flex-1 flex-row items-center justify-center py-3"
-              style={{
-                backgroundColor: !isPracticeMode ? "#219ebc" : "transparent",
-              }}
-              activeOpacity={0.7}
-            >
-              <ChartBarIcon size={16} color={!isPracticeMode ? "#ffffff" : "#8ecae6"} />
-              <Text
-                className="ml-2 text-sm"
-                style={{
-                  fontFamily: "CabinetGrotesk-Medium",
-                  color: !isPracticeMode ? "#ffffff" : "#8ecae6",
-                }}
+            <View className="flex-row items-center mb-3">
+              <TouchableOpacity
+                onPress={() => router.push("/(tabs)/")}
+                className="mr-3 p-2 rounded-full"
+                style={{ backgroundColor: "#219ebc20" }}
+                activeOpacity={0.7}
               >
-                Analyze
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setIsPracticeMode(true)}
-              className="flex-1 flex-row items-center justify-center py-3"
-              style={{
-                backgroundColor: isPracticeMode ? "#ffb703" : "transparent",
-              }}
-              activeOpacity={0.7}
-            >
-              <AcademicCapIcon size={16} color={isPracticeMode ? "#023047" : "#8ecae6"} />
-              <Text
-                className="ml-2 text-sm"
-                style={{
-                  fontFamily: "CabinetGrotesk-Medium",
-                  color: isPracticeMode ? "#023047" : "#8ecae6",
-                }}
-              >
-                Practice
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Speech Context Display with Edit Button */}
-        {speechContext && speechContext.speechType !== "General Practice" && (
-          <View className="mx-6 mb-4 bg-background-card rounded-xl p-4 border border-secondary/20">
-            <View className="flex-row items-center justify-between mb-2">
-              <View className="flex-row items-center">
-                <SparklesIcon size={16} color="#ffb703" />
+                <ArrowLeftIcon size={20} color="#8ecae6" />
+              </TouchableOpacity>
+              <View className="flex-1">
                 <Text
-                  className="text-accent ml-2"
-                  style={{ fontFamily: "CabinetGrotesk-Medium" }}
+                  className="text-2xl text-white"
+                  style={{ fontFamily: "CabinetGrotesk-Bold" }}
                 >
-                  Context
+                  Record Speech
+                </Text>
+                <Text
+                  className="text-secondary-light mt-1"
+                  style={{ fontFamily: "CabinetGrotesk-Light" }}
+                >
+                  {speechContext?.speechType ||
+                    "Practice your presentation skills"}
                 </Text>
               </View>
+            </View>
+
+            {/* Mode Toggle: Analyze vs Practice */}
+            <View
+              className="flex-row rounded-xl overflow-hidden"
+              style={{
+                backgroundColor: "#011627",
+                borderWidth: 1,
+                borderColor: "#034569",
+              }}
+            >
               <TouchableOpacity
-                onPress={() => setShowEditContext(true)}
-                className="flex-row items-center px-3 py-1 rounded-full"
-                style={{ backgroundColor: "#219ebc30" }}
+                onPress={() => setIsPracticeMode(false)}
+                className="flex-1 flex-row items-center justify-center py-3"
+                style={{
+                  backgroundColor: !isPracticeMode ? "#219ebc" : "transparent",
+                }}
+                activeOpacity={0.7}
               >
-                <PencilSquareIcon size={14} color="#8ecae6" />
+                <ChartBarIcon
+                  size={16}
+                  color={!isPracticeMode ? "#ffffff" : "#8ecae6"}
+                />
                 <Text
-                  className="text-xs ml-1"
+                  className="ml-2 text-sm"
                   style={{
                     fontFamily: "CabinetGrotesk-Medium",
-                    color: "#8ecae6",
+                    color: !isPracticeMode ? "#ffffff" : "#8ecae6",
                   }}
                 >
-                  Edit
+                  Analyze
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setIsPracticeMode(true)}
+                className="flex-1 flex-row items-center justify-center py-3"
+                style={{
+                  backgroundColor: isPracticeMode ? "#ffb703" : "transparent",
+                }}
+                activeOpacity={0.7}
+              >
+                <AcademicCapIcon
+                  size={16}
+                  color={isPracticeMode ? "#023047" : "#8ecae6"}
+                />
+                <Text
+                  className="ml-2 text-sm"
+                  style={{
+                    fontFamily: "CabinetGrotesk-Medium",
+                    color: isPracticeMode ? "#023047" : "#8ecae6",
+                  }}
+                >
+                  Practice
                 </Text>
               </TouchableOpacity>
             </View>
-            <Text
-              className="text-secondary-light text-sm"
-              style={{ fontFamily: "CabinetGrotesk-Light" }}
+          </Animated.View>
+
+          {/* Speech Context Display with Edit Button */}
+          {speechContext && speechContext.speechType !== "General Practice" && (
+            <Animated.View
+              entering={FadeInRight.delay(150).duration(300).springify()}
+              className="mx-6 mb-4 bg-background-card rounded-xl p-4 border border-secondary/20"
             >
-              {speechContext.audience && `Audience: ${speechContext.audience}`}
-              {speechContext.goal && ` • Goal: ${speechContext.goal}`}
-            </Text>
-            <View className="flex-row flex-wrap gap-1 mt-2">
-              {speechContext.focusAreas.map((area, i) => (
-                <View
-                  key={i}
-                  className="px-2 py-1 rounded-full"
+              <View className="flex-row items-center justify-between mb-2">
+                <View className="flex-row items-center">
+                  <SparklesIcon size={16} color="#ffb703" />
+                  <Text
+                    className="text-accent ml-2"
+                    style={{ fontFamily: "CabinetGrotesk-Medium" }}
+                  >
+                    Context
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setShowEditContext(true)}
+                  className="flex-row items-center px-3 py-1 rounded-full"
                   style={{ backgroundColor: "#219ebc30" }}
                 >
+                  <PencilSquareIcon size={14} color="#8ecae6" />
                   <Text
-                    className="text-xs"
+                    className="text-xs ml-1"
                     style={{
                       fontFamily: "CabinetGrotesk-Medium",
                       color: "#8ecae6",
                     }}
                   >
-                    {area}
+                    Edit
                   </Text>
-                </View>
-              ))}
-              {speechContext.timeLimitMinutes > 0 && (
-                <View
-                  className="px-2 py-1 rounded-full flex-row items-center"
-                  style={{ backgroundColor: "#ffb70330" }}
-                >
-                  <ClockIcon size={12} color="#ffb703" />
-                  <Text
-                    className="text-xs ml-1"
-                    style={{
-                      fontFamily: "CabinetGrotesk-Medium",
-                      color: "#ffb703",
-                    }}
-                  >
-                    {speechContext.timeLimitMinutes} min
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
-
-        {/* No context - show edit button */}
-        {(!speechContext ||
-          speechContext.speechType === "General Practice") && (
-          <TouchableOpacity
-            onPress={() => setShowEditContext(true)}
-            className="mx-6 mb-4 flex-row items-center justify-center py-3 rounded-xl border border-dashed border-secondary/30"
-          >
-            <PencilSquareIcon size={16} color="#8ecae6" />
-            <Text
-              className="ml-2"
-              style={{
-                fontFamily: "CabinetGrotesk-Medium",
-                color: "#8ecae6",
-              }}
-            >
-              Set speech preferences
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Recording area */}
-        <View className="flex-1 items-center justify-center px-6 py-8">
-          {/* Voice Visualizer - breathing animation */}
-          <VoiceVisualizer isRecording={isRecording} isPaused={isPaused} />
-
-          {/* Timer below visualizer */}
-          <View className="mt-4">
-            <Timer
-              durationMs={duration}
-              maxDurationMs={timeLimitMs || RECORDING_CONFIG.MAX_DURATION_MS}
-            />
-          </View>
-
-          {/* Time remaining indicator */}
-          {isRecording && timeLimitMs > 0 && (
-            <View
-              className="mt-2 flex-row items-center px-3 py-1 rounded-full"
-              style={{
-                backgroundColor: isNearTimeLimit ? "#fb850030" : "#219ebc20",
-              }}
-            >
-              <ClockIcon
-                size={14}
-                color={isNearTimeLimit ? "#fb8500" : "#8ecae6"}
-              />
-              <Text
-                className="text-xs ml-1"
-                style={{
-                  fontFamily: "CabinetGrotesk-Medium",
-                  color: isNearTimeLimit ? "#fb8500" : "#8ecae6",
-                }}
-              >
-                {formatTime(remainingMs)} remaining
-              </Text>
-            </View>
-          )}
-
-          {/* Status indicator */}
-          {isRecording && (
-            <View
-              className="mt-4 flex-row items-center px-4 py-2 rounded-full"
-              style={{
-                backgroundColor: isPaused ? "#fb850030" : "#ffb70330",
-              }}
-            >
-              {isPaused ? (
-                <PauseIcon size={20} color="#fb8500" />
-              ) : (
-                <View
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: "#ffb703" }}
-                />
-              )}
-              <Text
-                className="text-base ml-2"
-                style={{
-                  fontFamily: "CabinetGrotesk-Medium",
-                  color: isPaused ? "#fb8500" : "#ffb703",
-                }}
-              >
-                {isPaused ? "Paused" : "Recording..."}
-              </Text>
-            </View>
-          )}
-
-          {/* Record button - only shown when not recording */}
-          {!isRecording && (
-            <View className="mt-6">
-              <RecordButton
-                isRecording={false}
-                onPress={handleRecordPress}
-                disabled={false}
-              />
-            </View>
-          )}
-
-          {/* Control buttons - shown when recording */}
-          {isRecording && (
-            <View className="flex-row gap-8 mt-10">
-              <ControlButton
-                icon={isPaused ? PlayIcon : PauseIcon}
-                label={isPaused ? "Resume" : "Pause"}
-                onPress={handlePauseResume}
-                variant="default"
-              />
-              <ControlButton
-                icon={StopIcon}
-                label={isPracticeMode ? "Save" : "Analyze"}
-                onPress={handleStop}
-                variant="success"
-              />
-              <ControlButton
-                icon={ArrowPathIcon}
-                label="Reset"
-                onPress={handleReset}
-                variant="danger"
-              />
-            </View>
-          )}
-
-          {/* Error message */}
-          {recordingError && (
-            <View
-              className="mt-4 px-4 py-2 rounded-lg"
-              style={{ backgroundColor: "#fb850030" }}
-            >
-              <Text
-                className="text-center"
-                style={{
-                  fontFamily: "CabinetGrotesk-Regular",
-                  color: "#fb8500",
-                }}
-              >
-                {recordingError}
-              </Text>
-            </View>
-          )}
-
-          {/* Daily Prompt - shown in practice mode, tappable to start recording */}
-          {!isRecording && duration === 0 && isPracticeMode && (
-            <TouchableOpacity
-              className="mt-6 mx-4"
-              onPress={handleRecordPress}
-              activeOpacity={0.8}
-            >
-              <View
-                className="rounded-2xl p-5"
-                style={{ backgroundColor: "#011627", borderWidth: 1, borderColor: "#ffb70330" }}
-              >
-                <View className="flex-row items-center justify-between mb-3">
-                  <Text
-                    className="text-xs"
-                    style={{ fontFamily: "CabinetGrotesk-Medium", color: "#ffb703" }}
-                  >
-                    Daily Prompt
-                  </Text>
-                  <TouchableOpacity
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      setPromptIndex((prev) => (prev + 1) % PRACTICE_PROMPTS.length);
-                    }}
-                    className="p-2 rounded-full"
-                    style={{ backgroundColor: "#ffb70320" }}
-                    activeOpacity={0.7}
-                  >
-                    <ArrowPathIcon size={14} color="#ffb703" />
-                  </TouchableOpacity>
-                </View>
-                <Text
-                  className="text-white text-base leading-6"
-                  style={{ fontFamily: "CabinetGrotesk-Medium" }}
-                >
-                  "{PRACTICE_PROMPTS[promptIndex]}"
-                </Text>
-                <Text
-                  className="text-xs mt-3"
-                  style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
-                >
-                  Tap card or record button to start
-                </Text>
+                </TouchableOpacity>
               </View>
+              <Text
+                className="text-secondary-light text-sm"
+                style={{ fontFamily: "CabinetGrotesk-Light" }}
+              >
+                {speechContext.audience &&
+                  `Audience: ${speechContext.audience}`}
+                {speechContext.goal && ` • Goal: ${speechContext.goal}`}
+              </Text>
+              <View className="flex-row flex-wrap gap-1 mt-2">
+                {speechContext.focusAreas.map((area, i) => (
+                  <View
+                    key={i}
+                    className="px-2 py-1 rounded-full"
+                    style={{ backgroundColor: "#219ebc30" }}
+                  >
+                    <Text
+                      className="text-xs"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Medium",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      {area}
+                    </Text>
+                  </View>
+                ))}
+                {speechContext.timeLimitMinutes > 0 && (
+                  <View
+                    className="px-2 py-1 rounded-full flex-row items-center"
+                    style={{ backgroundColor: "#ffb70330" }}
+                  >
+                    <ClockIcon size={12} color="#ffb703" />
+                    <Text
+                      className="text-xs ml-1"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Medium",
+                        color: "#ffb703",
+                      }}
+                    >
+                      {speechContext.timeLimitMinutes} min
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </Animated.View>
+          )}
+
+          {/* No context - show edit button */}
+          {(!speechContext ||
+            speechContext.speechType === "General Practice") && (
+            <TouchableOpacity
+              onPress={() => setShowEditContext(true)}
+              className="mx-6 mb-4 flex-row items-center justify-center py-3 rounded-xl border border-dashed border-secondary/30"
+            >
+              <PencilSquareIcon size={16} color="#8ecae6" />
+              <Text
+                className="ml-2"
+                style={{
+                  fontFamily: "CabinetGrotesk-Medium",
+                  color: "#8ecae6",
+                }}
+              >
+                Set speech preferences
+              </Text>
             </TouchableOpacity>
           )}
 
-          {/* Analyze tips - shown in analyze mode */}
-          {!isRecording && duration === 0 && !isPracticeMode && (
-            <View className="mt-8 mx-4 bg-background-card rounded-2xl p-6 border border-secondary/20">
-              <View className="flex-row items-center justify-center mb-4">
-                <View
-                  className="w-10 h-10 rounded-full items-center justify-center"
-                  style={{ backgroundColor: "#219ebc30" }}
-                >
-                  <LightBulbIcon size={20} color="#219ebc" />
-                </View>
+          {/* Recording area */}
+          <Animated.View
+            entering={FadeIn.delay(200).duration(400)}
+            className="flex-1 items-center justify-center px-6 py-8"
+          >
+            {/* Voice Visualizer - breathing animation */}
+            <VoiceVisualizer isRecording={isRecording} isPaused={isPaused} />
+
+            {/* Timer below visualizer */}
+            <View className="mt-4">
+              <Timer
+                durationMs={duration}
+                maxDurationMs={timeLimitMs || RECORDING_CONFIG.MAX_DURATION_MS}
+              />
+            </View>
+
+            {/* Time remaining indicator */}
+            {isRecording && timeLimitMs > 0 && (
+              <View
+                className="mt-2 flex-row items-center px-3 py-1 rounded-full"
+                style={{
+                  backgroundColor: isNearTimeLimit ? "#fb850030" : "#219ebc20",
+                }}
+              >
+                <ClockIcon
+                  size={14}
+                  color={isNearTimeLimit ? "#fb8500" : "#8ecae6"}
+                />
                 <Text
-                  className="text-white ml-3"
-                  style={{ fontFamily: "CabinetGrotesk-Bold" }}
+                  className="text-xs ml-1"
+                  style={{
+                    fontFamily: "CabinetGrotesk-Medium",
+                    color: isNearTimeLimit ? "#fb8500" : "#8ecae6",
+                  }}
                 >
-                  Tips for a great recording
+                  {formatTime(remainingMs)} remaining
                 </Text>
               </View>
-              <View className="gap-3">
-                <View className="flex-row items-center">
+            )}
+
+            {/* Status indicator */}
+            {isRecording && (
+              <View
+                className="mt-4 flex-row items-center px-4 py-2 rounded-full"
+                style={{
+                  backgroundColor: isPaused ? "#fb850030" : "#ffb70330",
+                }}
+              >
+                {isPaused ? (
+                  <PauseIcon size={20} color="#fb8500" />
+                ) : (
                   <View
-                    className="w-6 h-6 rounded-full items-center justify-center"
+                    className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: "#ffb703" }}
-                  >
+                  />
+                )}
+                <Text
+                  className="text-base ml-2"
+                  style={{
+                    fontFamily: "CabinetGrotesk-Medium",
+                    color: isPaused ? "#fb8500" : "#ffb703",
+                  }}
+                >
+                  {isPaused ? "Paused" : "Recording..."}
+                </Text>
+              </View>
+            )}
+
+            {/* Record button - only shown when not recording */}
+            {!isRecording && (
+              <View className="mt-6">
+                <RecordButton
+                  isRecording={false}
+                  onPress={handleRecordPress}
+                  disabled={false}
+                />
+              </View>
+            )}
+
+            {/* Control buttons - shown when recording */}
+            {isRecording && (
+              <View className="flex-row gap-8 mt-10">
+                <ControlButton
+                  icon={isPaused ? PlayIcon : PauseIcon}
+                  label={isPaused ? "Resume" : "Pause"}
+                  onPress={handlePauseResume}
+                  variant="default"
+                />
+                <ControlButton
+                  icon={StopIcon}
+                  label={isPracticeMode ? "Save" : "Analyze"}
+                  onPress={handleStop}
+                  variant="success"
+                />
+                <ControlButton
+                  icon={ArrowPathIcon}
+                  label="Reset"
+                  onPress={handleReset}
+                  variant="danger"
+                />
+              </View>
+            )}
+
+            {/* Error message */}
+            {recordingError && (
+              <View
+                className="mt-4 px-4 py-2 rounded-lg"
+                style={{ backgroundColor: "#fb850030" }}
+              >
+                <Text
+                  className="text-center"
+                  style={{
+                    fontFamily: "CabinetGrotesk-Regular",
+                    color: "#fb8500",
+                  }}
+                >
+                  {recordingError}
+                </Text>
+              </View>
+            )}
+
+            {/* Daily Prompt - shown in practice mode, tappable to start recording */}
+            {!isRecording && duration === 0 && isPracticeMode && (
+              <TouchableOpacity
+                className="mt-6 mx-4"
+                onPress={handleRecordPress}
+                activeOpacity={0.8}
+              >
+                <View
+                  className="rounded-2xl p-5"
+                  style={{
+                    backgroundColor: "#011627",
+                    borderWidth: 1,
+                    borderColor: "#ffb70330",
+                  }}
+                >
+                  <View className="flex-row items-center justify-between mb-3">
                     <Text
                       className="text-xs"
                       style={{
-                        fontFamily: "CabinetGrotesk-Bold",
-                        color: "#023047",
+                        fontFamily: "CabinetGrotesk-Medium",
+                        color: "#ffb703",
                       }}
                     >
-                      1
+                      Daily Prompt
                     </Text>
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setPromptIndex(
+                          (prev) => (prev + 1) % PRACTICE_PROMPTS.length,
+                        );
+                      }}
+                      className="p-2 rounded-full"
+                      style={{ backgroundColor: "#ffb70320" }}
+                      activeOpacity={0.7}
+                    >
+                      <ArrowPathIcon size={14} color="#ffb703" />
+                    </TouchableOpacity>
                   </View>
                   <Text
-                    className="text-secondary-light ml-3 flex-1"
-                    style={{ fontFamily: "CabinetGrotesk-Light" }}
+                    className="text-white text-base leading-6"
+                    style={{ fontFamily: "CabinetGrotesk-Medium" }}
                   >
-                    Speak clearly for 1-5 minutes
+                    "{PRACTICE_PROMPTS[promptIndex]}"
+                  </Text>
+                  <Text
+                    className="text-xs mt-3"
+                    style={{
+                      fontFamily: "CabinetGrotesk-Light",
+                      color: "#8ecae6",
+                    }}
+                  >
+                    Tap card or record button to start
                   </Text>
                 </View>
-                <View className="flex-row items-center">
+              </TouchableOpacity>
+            )}
+
+            {/* Analyze tips - shown in analyze mode */}
+            {!isRecording && duration === 0 && !isPracticeMode && (
+              <View className="mt-8 mx-4 bg-background-card rounded-2xl p-6 border border-secondary/20">
+                <View className="flex-row items-center justify-center mb-4">
                   <View
-                    className="w-6 h-6 rounded-full items-center justify-center"
-                    style={{ backgroundColor: "#219ebc" }}
+                    className="w-10 h-10 rounded-full items-center justify-center"
+                    style={{ backgroundColor: "#219ebc30" }}
                   >
-                    <Text
-                      className="text-xs"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Bold",
-                        color: "#ffffff",
-                      }}
-                    >
-                      2
-                    </Text>
+                    <LightBulbIcon size={20} color="#219ebc" />
                   </View>
                   <Text
-                    className="text-secondary-light ml-3 flex-1"
-                    style={{ fontFamily: "CabinetGrotesk-Light" }}
+                    className="text-white ml-3"
+                    style={{ fontFamily: "CabinetGrotesk-Bold" }}
                   >
-                    Find a quiet environment
+                    Tips for a great recording
                   </Text>
                 </View>
-                <View className="flex-row items-center">
-                  <View
-                    className="w-6 h-6 rounded-full items-center justify-center"
-                    style={{ backgroundColor: "#fb8500" }}
-                  >
-                    <Text
-                      className="text-xs"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Bold",
-                        color: "#ffffff",
-                      }}
+                <View className="gap-3">
+                  <View className="flex-row items-center">
+                    <View
+                      className="w-6 h-6 rounded-full items-center justify-center"
+                      style={{ backgroundColor: "#ffb703" }}
                     >
-                      3
+                      <Text
+                        className="text-xs"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#023047",
+                        }}
+                      >
+                        1
+                      </Text>
+                    </View>
+                    <Text
+                      className="text-secondary-light ml-3 flex-1"
+                      style={{ fontFamily: "CabinetGrotesk-Light" }}
+                    >
+                      Speak clearly for 1-5 minutes
                     </Text>
                   </View>
-                  <Text
-                    className="text-secondary-light ml-3 flex-1"
-                    style={{ fontFamily: "CabinetGrotesk-Light" }}
-                  >
-                    We'll analyze filler words, pauses & pace
-                  </Text>
+                  <View className="flex-row items-center">
+                    <View
+                      className="w-6 h-6 rounded-full items-center justify-center"
+                      style={{ backgroundColor: "#219ebc" }}
+                    >
+                      <Text
+                        className="text-xs"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#ffffff",
+                        }}
+                      >
+                        2
+                      </Text>
+                    </View>
+                    <Text
+                      className="text-secondary-light ml-3 flex-1"
+                      style={{ fontFamily: "CabinetGrotesk-Light" }}
+                    >
+                      Find a quiet environment
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center">
+                    <View
+                      className="w-6 h-6 rounded-full items-center justify-center"
+                      style={{ backgroundColor: "#fb8500" }}
+                    >
+                      <Text
+                        className="text-xs"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#ffffff",
+                        }}
+                      >
+                        3
+                      </Text>
+                    </View>
+                    <Text
+                      className="text-secondary-light ml-3 flex-1"
+                      style={{ fontFamily: "CabinetGrotesk-Light" }}
+                    >
+                      We'll analyze filler words, pauses & pace
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+            )}
+          </Animated.View>
+        </ScrollView>
+      </Animated.View>
 
       {/* Edit Context Modal */}
       <SpeechContextModal

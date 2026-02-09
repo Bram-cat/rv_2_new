@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -254,6 +255,39 @@ export default function SignInScreen() {
               Go back
             </Text>
           </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!isSignInLoaded || !isSignUpLoaded) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#023047" }}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <View
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              backgroundColor: "#ffb703",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 16,
+            }}
+          >
+            <SparklesIcon size={40} color="#023047" />
+          </View>
+          <Text
+            style={{
+              fontFamily: "CabinetGrotesk-Bold",
+              fontSize: 24,
+              color: "#ffffff",
+              marginBottom: 8,
+            }}
+          >
+            Speechi
+          </Text>
+          <ActivityIndicator size="large" color="#ffb703" style={{ marginTop: 16 }} />
         </View>
       </SafeAreaView>
     );

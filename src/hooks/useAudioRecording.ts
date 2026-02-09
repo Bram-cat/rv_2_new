@@ -50,8 +50,20 @@ export function useAudioRecording() {
       setState((prev) => ({ ...prev, error: null, uri: null }));
 
       // Request permissions
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== "granted") {
+      let permResult;
+      try {
+        permResult = await Audio.requestPermissionsAsync();
+      } catch (permError) {
+        console.error("Permission request error:", permError);
+        setState((prev) => ({
+          ...prev,
+          error: "Failed to request microphone permission",
+          isRecording: false,
+        }));
+        return false;
+      }
+
+      if (permResult.status !== "granted") {
         setState((prev) => ({
           ...prev,
           error: "Microphone permission denied",
@@ -61,10 +73,20 @@ export function useAudioRecording() {
       }
 
       // Configure audio mode for recording
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
+      try {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
+      } catch (modeError) {
+        console.error("Audio mode error:", modeError);
+        // Retry once after a short delay
+        await new Promise((r) => setTimeout(r, 200));
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
+      }
 
       // Create and prepare the recording
       const { recording } = await Audio.Recording.createAsync(
