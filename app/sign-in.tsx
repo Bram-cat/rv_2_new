@@ -11,7 +11,8 @@ import {
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useCallback } from "react";
-import { useSignIn, useSignUp } from "@clerk/clerk-expo";
+import { useSignIn, useSignUp, useSSO } from "@clerk/clerk-expo";
+import * as Linking from "expo-linking";
 import {
   SparklesIcon,
   EnvelopeIcon,
@@ -36,9 +37,11 @@ export default function SignInScreen() {
     setActive: setSignUpActive,
     isLoaded: isSignUpLoaded,
   } = useSignUp();
+  const { startSSOFlow } = useSSO();
   const { showAlert } = useThemedAlert();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("sign-in");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -170,6 +173,30 @@ export default function SignInScreen() {
     showAlert,
   ]);
 
+  // Google OAuth
+  const handleGoogleSignIn = useCallback(async () => {
+    setIsGoogleLoading(true);
+    try {
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_google",
+        redirectUrl: Linking.createURL("/sso-callback", { scheme: "speechi" }),
+      });
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+        router.replace("/(tabs)");
+      }
+    } catch (error: any) {
+      console.error("Google Sign In Error:", error);
+      const message =
+        error?.errors?.[0]?.longMessage ||
+        error?.errors?.[0]?.message ||
+        "Google sign-in failed. Please try again.";
+      showAlert({ title: "Google Sign In Failed", message, type: "error" });
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  }, [startSSOFlow, router, showAlert]);
+
   // Verification screen
   if (pendingVerification) {
     return (
@@ -237,6 +264,36 @@ export default function SignInScreen() {
               style={{ fontFamily: "CabinetGrotesk-Bold", color: "#023047" }}
             >
               {isSubmitting ? "Verifying..." : "Verify Email"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                await signUp?.prepareEmailAddressVerification({
+                  strategy: "email_code",
+                });
+                showAlert({
+                  title: "Code Resent",
+                  message: "A new verification code has been sent to your email.",
+                  type: "success",
+                });
+              } catch (error: any) {
+                showAlert({
+                  title: "Resend Failed",
+                  message: error?.errors?.[0]?.message || "Could not resend code.",
+                  type: "error",
+                });
+              }
+            }}
+            className="items-center py-3"
+            activeOpacity={0.7}
+          >
+            <Text
+              className="text-sm"
+              style={{ fontFamily: "CabinetGrotesk-Medium", color: "#ffb703" }}
+            >
+              Resend Code
             </Text>
           </TouchableOpacity>
 
@@ -477,6 +534,39 @@ export default function SignInScreen() {
                   : authMode === "sign-in"
                     ? "Sign In"
                     : "Create Account"}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View className="flex-row items-center my-4">
+              <View style={{ flex: 1, height: 1, backgroundColor: "#034569" }} />
+              <Text
+                className="mx-4 text-xs"
+                style={{ fontFamily: "CabinetGrotesk-Regular", color: "#8ecae680" }}
+              >
+                or
+              </Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: "#034569" }} />
+            </View>
+
+            {/* Google OAuth */}
+            <TouchableOpacity
+              onPress={handleGoogleSignIn}
+              disabled={isGoogleLoading}
+              className="rounded-2xl p-4 mb-4 items-center flex-row justify-center"
+              style={{
+                backgroundColor: "#011627",
+                borderWidth: 1,
+                borderColor: "#034569",
+                opacity: isGoogleLoading ? 0.7 : 1,
+              }}
+              activeOpacity={0.8}
+            >
+              <Text
+                className="text-base text-white"
+                style={{ fontFamily: "CabinetGrotesk-Bold" }}
+              >
+                {isGoogleLoading ? "Connecting..." : "Continue with Google"}
               </Text>
             </TouchableOpacity>
 

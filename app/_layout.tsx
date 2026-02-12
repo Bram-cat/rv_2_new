@@ -1,12 +1,12 @@
 import "../global.css";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
-import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
+import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import { tokenCache } from "../src/services/auth/tokenCache";
 import {
   initRevenueCat,
@@ -31,26 +31,8 @@ export default function RootLayout() {
     "CabinetGrotesk-Black": require("../CabinetGrotesk_Complete/Fonts/OTF/CabinetGrotesk-Black.otf"),
   });
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
-
   if (!fontsLoaded && !fontError) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#023047",
-        }}
-      >
-        <ActivityIndicator size="large" color="#ffb703" />
-        <Text style={{ marginTop: 16, color: "#8ecae6" }}>Loading...</Text>
-      </View>
-    );
+    return null; // Keep native splash screen visible
   }
 
   return (
@@ -58,22 +40,27 @@ export default function RootLayout() {
       publishableKey={CLERK_PUBLISHABLE_KEY}
       tokenCache={tokenCache}
     >
-      <ClerkLoaded>
-        <View style={{ flex: 1 }}>
-          <SafeAreaProvider>
-            <StatusBar style="light" />
-            <ThemedAlertProvider>
-              <AppNavigator />
-            </ThemedAlertProvider>
-          </SafeAreaProvider>
-        </View>
-      </ClerkLoaded>
+      <View style={{ flex: 1, backgroundColor: "#023047" }}>
+        <SafeAreaProvider>
+          <StatusBar style="light" />
+          <ThemedAlertProvider>
+            <AppNavigator fontsReady={fontsLoaded || !!fontError} />
+          </ThemedAlertProvider>
+        </SafeAreaProvider>
+      </View>
     </ClerkProvider>
   );
 }
 
-function AppNavigator() {
-  const { userId } = useAuth();
+function AppNavigator({ fontsReady }: { fontsReady: boolean }) {
+  const { userId, isLoaded } = useAuth();
+
+  // Hide splash screen only when both fonts AND Clerk are ready
+  useEffect(() => {
+    if (fontsReady && isLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsReady, isLoaded]);
 
   // Initialize RevenueCat once
   useEffect(() => {

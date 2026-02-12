@@ -4,30 +4,58 @@ import Purchases, {
   CustomerInfo,
   LOG_LEVEL,
 } from "react-native-purchases";
+import { Platform } from "react-native";
 
-const REVENUECAT_API_KEY = process.env.EXPO_PUBLIC_REVENUE_CAT_API_KEY || "";
-const ENTITLEMENT_ID = "rv_hackathon_2 Pro";
+const GOOGLE_KEY = process.env.EXPO_PUBLIC_REVENUE_CAT_API_KEY || "";
 
+// Use the production Google Play API key (goog_*) — NOT the sandbox/test key
+const REVENUECAT_API_KEY = GOOGLE_KEY;
+const ENTITLEMENT_ID = "Speechi Premium";
+
+let initPromise: Promise<boolean> | null = null;
 let isInitialized = false;
 
 export { ENTITLEMENT_ID };
 
-export async function initRevenueCat(): Promise<void> {
-  if (isInitialized) return;
+export async function initRevenueCat(): Promise<boolean> {
+  // Return existing promise if init is already in progress (prevents double-configure)
+  if (initPromise) return initPromise;
 
-  try {
-    if (!REVENUECAT_API_KEY) {
-      console.log("[RevenueCat] No API key provided, skipping init.");
-      return;
+  initPromise = (async () => {
+    if (isInitialized) return true;
+
+    try {
+      if (!REVENUECAT_API_KEY) {
+        console.warn("[RevenueCat] No API key provided, skipping init.");
+        return false;
+      }
+
+      Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
+
+      if (Platform.OS === "android") {
+        await Purchases.configure({ apiKey: REVENUECAT_API_KEY });
+      } else {
+        await Purchases.configure({ apiKey: REVENUECAT_API_KEY });
+      }
+
+      isInitialized = true;
+      console.log(
+        "[RevenueCat] Initialized successfully (" +
+          (REVENUECAT_API_KEY.startsWith("test_") ? "SANDBOX/TEST STORE" : "PRODUCTION") +
+          ") with key: " +
+          REVENUECAT_API_KEY.substring(0, 8) +
+          "...",
+      );
+      return true;
+    } catch (error: any) {
+      console.warn("[RevenueCat] Init failed:", error.message || error);
+      // Reset so we can retry
+      initPromise = null;
+      return false;
     }
+  })();
 
-    Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-    await Purchases.configure({ apiKey: REVENUECAT_API_KEY });
-    isInitialized = true;
-    console.log("[RevenueCat] Initialized successfully");
-  } catch (error: any) {
-    console.warn("[RevenueCat] Init skipped:", error.message || error);
-  }
+  return initPromise;
 }
 
 export function isRevenueCatReady(): boolean {
@@ -55,11 +83,21 @@ export async function logoutUser(): Promise<void> {
 }
 
 export async function checkProStatus(): Promise<boolean> {
+  // Wait for init if it's in progress
+  if (initPromise) await initPromise;
   if (!isInitialized) return false;
   try {
     const info = await Purchases.getCustomerInfo();
-    return info.entitlements.active[ENTITLEMENT_ID] !== undefined;
-  } catch {
+    const isPro = info.entitlements.active[ENTITLEMENT_ID] !== undefined;
+    console.log(
+      "[RevenueCat] Pro status:",
+      isPro,
+      "| Active entitlements:",
+      Object.keys(info.entitlements.active),
+    );
+    return isPro;
+  } catch (error: any) {
+    console.warn("[RevenueCat] checkProStatus error:", error.message || error);
     return false;
   }
 }
@@ -74,11 +112,61 @@ export async function getCustomerInfo(): Promise<CustomerInfo | null> {
 }
 
 export async function getOfferings(): Promise<PurchasesOffering | null> {
-  if (!isInitialized) return null;
+  // Wait for init if it's in progress
+  if (initPromise) {
+    const initResult = await initPromise;
+    if (!initResult) {
+      console.warn("[RevenueCat] getOfferings: SDK failed to initialize");
+      return null;
+    }
+  }
+
+  if (!isInitialized) {
+    console.warn("[RevenueCat] getOfferings: SDK not initialized");
+    return null;
+  }
+
   try {
     const offerings = await Purchases.getOfferings();
+    console.log(
+      "[RevenueCat] All offerings:",
+      JSON.stringify(Object.keys(offerings.all)),
+    );
+    console.log(
+      "[RevenueCat] Current offering:",
+      offerings.current?.identifier || "NONE",
+    );
+
+    if (offerings.current) {
+      console.log(
+        "[RevenueCat] Available packages:",
+        offerings.current.availablePackages.map(
+          (p) =>
+            `${p.identifier} (${p.packageType}) - ${p.product.priceString}`,
+        ),
+      );
+    } else {
+      console.warn(
+        "[RevenueCat] No current offering found. " +
+          "Make sure you have set a 'Current' offering in the RevenueCat dashboard " +
+          "and that products are properly configured in Google Play Console.",
+      );
+
+      // Try to find any offering if current is null
+      const allKeys = Object.keys(offerings.all);
+      if (allKeys.length > 0) {
+        const fallback = offerings.all[allKeys[0]];
+        console.log(
+          "[RevenueCat] Using fallback offering:",
+          fallback.identifier,
+        );
+        return fallback;
+      }
+    }
+
     return offerings.current;
-  } catch {
+  } catch (error: any) {
+    console.warn("[RevenueCat] getOfferings error:", error.message || error);
     return null;
   }
 }
@@ -87,13 +175,14 @@ export async function purchasePackage(pkg: PurchasesPackage): Promise<boolean> {
   if (!isInitialized) return false;
   try {
     const { customerInfo } = await Purchases.purchasePackage(pkg);
-    const isPro = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
-    if (!isPro) {
-      console.log(
-        "[RevenueCat] Purchase completed. Active entitlements:",
-        Object.keys(customerInfo.entitlements.active),
-      );
-    }
+    const isPro =
+      customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
+    console.log(
+      "[RevenueCat] Purchase completed. Pro:",
+      isPro,
+      "| Active entitlements:",
+      Object.keys(customerInfo.entitlements.active),
+    );
     // Purchase completed successfully — return true even if entitlement
     // takes a moment to propagate
     return true;
@@ -102,6 +191,7 @@ export async function purchasePackage(pkg: PurchasesPackage): Promise<boolean> {
       console.log("[RevenueCat] User cancelled purchase");
       return false;
     }
+    console.warn("[RevenueCat] Purchase error:", error.message || error);
     throw error;
   }
 }
@@ -141,6 +231,9 @@ export async function presentCustomerCenter(): Promise<void> {
     const RevenueCatUI = require("react-native-purchases-ui").default;
     await RevenueCatUI.presentCustomerCenter();
   } catch (error: any) {
-    console.warn("[RevenueCat] Customer center not available:", error.message || error);
+    console.warn(
+      "[RevenueCat] Customer center not available:",
+      error.message || error,
+    );
   }
 }

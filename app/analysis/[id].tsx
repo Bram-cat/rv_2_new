@@ -1,12 +1,7 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Modal } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   DocumentTextIcon,
@@ -90,20 +85,45 @@ function FillerWordsDisplay({ fillerWords }: { fillerWords: string[] }) {
   const maxCount = sorted.length > 0 ? sorted[0][1] : 1;
 
   return (
-    <View className="p-4 rounded-xl" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#fb850030" }}>
+    <View
+      className="p-4 rounded-xl"
+      style={{
+        backgroundColor: "#1a1a2e",
+        borderWidth: 1,
+        borderColor: "#fb850030",
+      }}
+    >
       <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-sm" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffffff" }}>
+        <Text
+          className="text-sm"
+          style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffffff" }}
+        >
           Filler Words
         </Text>
-        <View className="px-3 py-1 rounded-full" style={{ backgroundColor: total > 5 ? "#fb8500" : total > 2 ? "#ffb703" : "#22c55e" }}>
-          <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Bold", color: total > 5 ? "#ffffff" : "#023047" }}>
+        <View
+          className="px-3 py-1 rounded-full"
+          style={{
+            backgroundColor:
+              total > 5 ? "#fb8500" : total > 2 ? "#ffb703" : "#22c55e",
+          }}
+        >
+          <Text
+            className="text-xs"
+            style={{
+              fontFamily: "CabinetGrotesk-Bold",
+              color: total > 5 ? "#ffffff" : "#023047",
+            }}
+          >
             {total} total
           </Text>
         </View>
       </View>
       {sorted.map(([word, count]) => (
         <View key={word} className="flex-row items-center mb-3">
-          <View className="w-16 px-2 py-1 rounded-md mr-3" style={{ backgroundColor: "#ffffff10" }}>
+          <View
+            className="w-16 px-2 py-1 rounded-md mr-3"
+            style={{ backgroundColor: "#ffffff10" }}
+          >
             <Text
               className="text-sm text-center"
               style={{ fontFamily: "CabinetGrotesk-Medium", color: "#ffffff" }}
@@ -111,16 +131,26 @@ function FillerWordsDisplay({ fillerWords }: { fillerWords: string[] }) {
               {word}
             </Text>
           </View>
-          <View className="flex-1 mr-3 h-5 rounded-md overflow-hidden" style={{ backgroundColor: "#ffffff10" }}>
+          <View
+            className="flex-1 mr-3 h-5 rounded-md overflow-hidden"
+            style={{ backgroundColor: "#ffffff10" }}
+          >
             <View
               className="h-full rounded-md items-center justify-center"
               style={{
                 width: `${Math.max((count / maxCount) * 100, 15)}%`,
-                backgroundColor: count >= 5 ? "#fb8500" : count >= 3 ? "#ffb703" : "#219ebc",
+                backgroundColor:
+                  count >= 5 ? "#fb8500" : count >= 3 ? "#ffb703" : "#219ebc",
               }}
             >
               {count >= 2 && (
-                <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Bold", color: count >= 3 ? "#023047" : "#ffffff" }}>
+                <Text
+                  className="text-xs"
+                  style={{
+                    fontFamily: "CabinetGrotesk-Bold",
+                    color: count >= 3 ? "#023047" : "#ffffff",
+                  }}
+                >
                   {count}x
                 </Text>
               )}
@@ -172,7 +202,10 @@ function ScoreDetailModal({
       onRequestClose={onClose}
     >
       <View className="flex-1 bg-black/60 justify-end">
-        <View className="bg-primary rounded-t-3xl p-6" style={{ maxHeight: "85%" }}>
+        <View
+          className="bg-primary rounded-t-3xl p-6"
+          style={{ maxHeight: "85%" }}
+        >
           <View className="flex-row items-center justify-between mb-4">
             <Text
               className="text-xl text-white"
@@ -206,13 +239,19 @@ function ScoreDetailModal({
                     <View className="flex-row items-center justify-between mb-3">
                       <Text
                         className="text-base"
-                        style={{ fontFamily: "CabinetGrotesk-Bold", color: scoreColor }}
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: scoreColor,
+                        }}
                       >
                         {breakdown.category}
                       </Text>
                       <Text
                         className="text-2xl"
-                        style={{ fontFamily: "CabinetGrotesk-Bold", color: scoreColor }}
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: scoreColor,
+                        }}
                       >
                         {breakdown.currentScore}/{breakdown.maxScore}
                       </Text>
@@ -223,7 +262,10 @@ function ScoreDetailModal({
                       <ArrowTrendingUpIcon size={14} color="#fb8500" />
                       <Text
                         className="ml-2 flex-1 text-sm"
-                        style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
+                        style={{
+                          fontFamily: "CabinetGrotesk-Light",
+                          color: "#8ecae6",
+                        }}
                       >
                         {breakdown.whatToImprove}
                       </Text>
@@ -234,7 +276,10 @@ function ScoreDetailModal({
                       <CheckCircleIcon size={14} color="#22c55e" />
                       <Text
                         className="ml-2 flex-1 text-sm"
-                        style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
+                        style={{
+                          fontFamily: "CabinetGrotesk-Light",
+                          color: "#8ecae6",
+                        }}
                       >
                         {breakdown.howToGetFullMarks}
                       </Text>
@@ -274,12 +319,15 @@ export default function AnalysisScreen() {
 
   // AI Analysis State
   const [aiFeedback, setAiFeedback] = useState<SpeechFeedback | null>(null);
-  const [practiceObservation, setPracticeObservation] = useState<PracticeObservation | null>(null);
+  const [practiceObservation, setPracticeObservation] =
+    useState<PracticeObservation | null>(null);
   const [isAnalyzingWithAI, setIsAnalyzingWithAI] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
   // Score detail modal
-  const [highlightCategory, setHighlightCategory] = useState<string | undefined>(undefined);
+  const [highlightCategory, setHighlightCategory] = useState<
+    string | undefined
+  >(undefined);
   const [showScoreDetail, setShowScoreDetail] = useState(false);
 
   // Paywall
@@ -348,7 +396,9 @@ export default function AnalysisScreen() {
 
   // Stop TTS on unmount
   useEffect(() => {
-    return () => { Speech.stop(); };
+    return () => {
+      Speech.stop();
+    };
   }, []);
 
   // Hooks
@@ -398,7 +448,14 @@ export default function AnalysisScreen() {
       setIsAnalyzingWithAI(true);
       setAiError(null);
 
-      console.log("[AI] runAIAnalysis called. practiceMode:", loadedSession.practiceMode, "text length:", text.length, "duration:", durationSec);
+      console.log(
+        "[AI] runAIAnalysis called. practiceMode:",
+        loadedSession.practiceMode,
+        "text length:",
+        text.length,
+        "duration:",
+        durationSec,
+      );
 
       try {
         // Build coaching context from user history + training data
@@ -416,7 +473,14 @@ export default function AnalysisScreen() {
             durationSec,
             aiContext || undefined,
           );
-          console.log("[AI] Practice observation received:", JSON.stringify({ pace: observation.pace, confidence: observation.confidence, clarity: observation.clarity }));
+          console.log(
+            "[AI] Practice observation received:",
+            JSON.stringify({
+              pace: observation.pace,
+              confidence: observation.confidence,
+              clarity: observation.clarity,
+            }),
+          );
           setPracticeObservation(observation);
 
           // Track usage for paywall
@@ -425,14 +489,20 @@ export default function AnalysisScreen() {
 
           // Save observation as coaching knowledge so AI learns the user's style
           if (id) {
-            const practiceDate = new Date(loadedSession.createdAt).toLocaleDateString();
+            const practiceDate = new Date(
+              loadedSession.createdAt,
+            ).toLocaleDateString();
             const durationMin = Math.round(durationSec / 60);
             const knowledgeEntry = [
               `Practice (${practiceDate}, ${durationMin}min):`,
-              observation.fillerWords.length > 0 ? `Fillers: ${observation.fillerWords.join(", ")}` : "",
+              observation.fillerWords.length > 0
+                ? `Fillers: ${observation.fillerWords.join(", ")}`
+                : "",
               `Pace: ${observation.pace}/10 | Confidence: ${observation.confidence}/10`,
               `Transcript excerpt: "${text.substring(0, 300)}${text.length > 300 ? "..." : ""}"`,
-            ].filter(Boolean).join("\n");
+            ]
+              .filter(Boolean)
+              .join("\n");
 
             await addCoachingKnowledge(knowledgeEntry, "practice-observation");
             await updateSession(id, {});
@@ -457,7 +527,10 @@ export default function AnalysisScreen() {
             const updates: Partial<RecordingSession> = { aiFeedback: feedback };
 
             // If this is a challenge session, calculate the challenge score
-            if (loadedSession.practiceMode === "challenge" && loadedSession.challengeType) {
+            if (
+              loadedSession.practiceMode === "challenge" &&
+              loadedSession.challengeType
+            ) {
               const challenge = getChallengeById(loadedSession.challengeType);
               if (challenge) {
                 let actualValue = 0;
@@ -498,16 +571,21 @@ export default function AnalysisScreen() {
     [id, sessions, updateSession],
   );
 
-  // Check paywall status on mount
-  useEffect(() => {
-    async function checkPaywall() {
-      const count = await getAnalysisCount();
-      setAnalysisCount(count);
-      const isPro = await checkProStatus();
-      setIsProUser(isPro);
-    }
-    checkPaywall();
-  }, []);
+  // Check paywall status on mount and when returning from paywall
+  useFocusEffect(
+    useCallback(() => {
+      async function checkPaywall() {
+        const count = await getAnalysisCount();
+        setAnalysisCount(count);
+        const isPro = await checkProStatus();
+        setIsProUser(isPro);
+        if (isPro) {
+          setShowPaywall(false);
+        }
+      }
+      checkPaywall();
+    }, []),
+  );
 
   // Load session on mount
   useEffect(() => {
@@ -517,7 +595,16 @@ export default function AnalysisScreen() {
       setIsLoadingSession(true);
       try {
         const loaded = await getSession(id, userId);
-        console.log("[Load] Session loaded. practiceMode:", loaded?.practiceMode, "hasTranscription:", !!loaded?.transcription, "hasAiFeedback:", !!loaded?.aiFeedback, "hasAudioUri:", !!loaded?.audioUri);
+        console.log(
+          "[Load] Session loaded. practiceMode:",
+          loaded?.practiceMode,
+          "hasTranscription:",
+          !!loaded?.transcription,
+          "hasAiFeedback:",
+          !!loaded?.aiFeedback,
+          "hasAudioUri:",
+          !!loaded?.audioUri,
+        );
         setSession(loaded);
 
         // Load existing AI feedback if available
@@ -570,11 +657,16 @@ export default function AnalysisScreen() {
 
   // Start transcription
   const startTranscription = useCallback(
-    async (audioUri: string, durationMs: number, loadedSession: RecordingSession) => {
+    async (
+      audioUri: string,
+      durationMs: number,
+      loadedSession: RecordingSession,
+    ) => {
       if (!isConfigured) {
         showAlert({
           title: "Configuration Required",
-          message: "Please add your AssemblyAI API key to the .env file to enable speech-to-text.",
+          message:
+            "Please add your AssemblyAI API key to the .env file to enable speech-to-text.",
           type: "warning",
         });
         return;
@@ -606,7 +698,13 @@ export default function AnalysisScreen() {
           confidence: s.confidence,
         }));
         const speechCtx = (loadedSession as any).speechContext;
-        runAIAnalysis(result.text, durationSec, loadedSession, sentimentData, speechCtx);
+        runAIAnalysis(
+          result.text,
+          durationSec,
+          loadedSession,
+          sentimentData,
+          speechCtx,
+        );
       }
     },
     [id, isConfigured, transcribe, updateSession, runAIAnalysis],
@@ -823,7 +921,10 @@ export default function AnalysisScreen() {
         <View className="px-6 pt-4">
           {/* Practice Observation View - different from analysis */}
           {session?.practiceMode === "free" && (
-            <View className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary/20" style={{ borderColor: "#ffb70340" }}>
+            <View
+              className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary/20"
+              style={{ borderColor: "#ffb70340" }}
+            >
               <View className="flex-row items-center mb-4">
                 <View
                   className="w-10 h-10 rounded-full items-center justify-center"
@@ -840,7 +941,10 @@ export default function AnalysisScreen() {
                   </Text>
                   <Text
                     className="text-xs"
-                    style={{ fontFamily: "CabinetGrotesk-Light", color: "#ffb703" }}
+                    style={{
+                      fontFamily: "CabinetGrotesk-Light",
+                      color: "#ffb703",
+                    }}
                   >
                     AI is observing your patterns
                   </Text>
@@ -849,10 +953,15 @@ export default function AnalysisScreen() {
                   <TouchableOpacity
                     onPress={handleReadAloud}
                     className="p-2 rounded-full"
-                    style={{ backgroundColor: isSpeaking ? "#ffb703" : "#ffb70320" }}
+                    style={{
+                      backgroundColor: isSpeaking ? "#ffb703" : "#ffb70320",
+                    }}
                     activeOpacity={0.7}
                   >
-                    <SpeakerWaveIcon size={18} color={isSpeaking ? "#023047" : "#ffb703"} />
+                    <SpeakerWaveIcon
+                      size={18}
+                      color={isSpeaking ? "#023047" : "#ffb703"}
+                    />
                   </TouchableOpacity>
                 )}
               </View>
@@ -864,40 +973,144 @@ export default function AnalysisScreen() {
               )}
 
               {aiError && !practiceObservation && (
-                <View className="p-4 rounded-lg" style={{ backgroundColor: "#fb850030" }}>
-                  <Text className="mb-2" style={{ fontFamily: "CabinetGrotesk-Regular", color: "#fb8500" }}>
+                <View
+                  className="p-4 rounded-lg"
+                  style={{ backgroundColor: "#fb850030" }}
+                >
+                  <Text
+                    className="mb-2"
+                    style={{
+                      fontFamily: "CabinetGrotesk-Regular",
+                      color: "#fb8500",
+                    }}
+                  >
                     {aiError}
                   </Text>
-                  <Button title="Retry" onPress={handleRetryAI} variant="secondary" size="small" />
+                  <Button
+                    title="Retry"
+                    onPress={handleRetryAI}
+                    variant="secondary"
+                    size="small"
+                  />
                 </View>
               )}
 
               {/* Speaking Stats - ALWAYS show when local analysis is available */}
               {displayAnalysis && (
                 <View className="flex-row gap-2 mb-4">
-                  <View className="flex-1 p-3 rounded-xl items-center" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#ffffff08" }}>
-                    <Text className="text-lg" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffb703" }}>
+                  <View
+                    className="flex-1 p-3 rounded-xl items-center"
+                    style={{
+                      backgroundColor: "#1a1a2e",
+                      borderWidth: 1,
+                      borderColor: "#ffffff08",
+                    }}
+                  >
+                    <Text
+                      className="text-lg"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Bold",
+                        color: "#ffb703",
+                      }}
+                    >
                       {displayAnalysis.speakingRate.wordsPerMinute}
                     </Text>
-                    <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}>WPM</Text>
+                    <Text
+                      className="text-xs"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      WPM
+                    </Text>
                   </View>
-                  <View className="flex-1 p-3 rounded-xl items-center" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#ffffff08" }}>
-                    <Text className="text-lg" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffb703" }}>
+                  <View
+                    className="flex-1 p-3 rounded-xl items-center"
+                    style={{
+                      backgroundColor: "#1a1a2e",
+                      borderWidth: 1,
+                      borderColor: "#ffffff08",
+                    }}
+                  >
+                    <Text
+                      className="text-lg"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Bold",
+                        color: "#ffb703",
+                      }}
+                    >
                       {displayAnalysis.speakingRate.totalWords}
                     </Text>
-                    <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}>Words</Text>
+                    <Text
+                      className="text-xs"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      Words
+                    </Text>
                   </View>
-                  <View className="flex-1 p-3 rounded-xl items-center" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#ffffff08" }}>
-                    <Text className="text-lg" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffb703" }}>
+                  <View
+                    className="flex-1 p-3 rounded-xl items-center"
+                    style={{
+                      backgroundColor: "#1a1a2e",
+                      borderWidth: 1,
+                      borderColor: "#ffffff08",
+                    }}
+                  >
+                    <Text
+                      className="text-lg"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Bold",
+                        color: "#ffb703",
+                      }}
+                    >
                       {displayAnalysis.pauseStats.count}
                     </Text>
-                    <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}>Pauses</Text>
+                    <Text
+                      className="text-xs"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      Pauses
+                    </Text>
                   </View>
-                  <View className="flex-1 p-3 rounded-xl items-center" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#ffffff08" }}>
-                    <Text className="text-lg" style={{ fontFamily: "CabinetGrotesk-Bold", color: getTotalFillerCount(displayAnalysis.fillerWords) > 5 ? "#fb8500" : getTotalFillerCount(displayAnalysis.fillerWords) > 2 ? "#ffb703" : "#22c55e" }}>
+                  <View
+                    className="flex-1 p-3 rounded-xl items-center"
+                    style={{
+                      backgroundColor: "#1a1a2e",
+                      borderWidth: 1,
+                      borderColor: "#ffffff08",
+                    }}
+                  >
+                    <Text
+                      className="text-lg"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Bold",
+                        color:
+                          getTotalFillerCount(displayAnalysis.fillerWords) > 5
+                            ? "#fb8500"
+                            : getTotalFillerCount(displayAnalysis.fillerWords) >
+                                2
+                              ? "#ffb703"
+                              : "#22c55e",
+                      }}
+                    >
                       {getTotalFillerCount(displayAnalysis.fillerWords)}
                     </Text>
-                    <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}>Fillers</Text>
+                    <Text
+                      className="text-xs"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
+                      Fillers
+                    </Text>
                   </View>
                 </View>
               )}
@@ -906,10 +1119,26 @@ export default function AnalysisScreen() {
                 <View>
                   {/* Conversation type badge */}
                   {practiceObservation.conversationType && (
-                    <View className="flex-row items-center mb-4 px-3 py-2 rounded-lg self-start" style={{ backgroundColor: "#219ebc20", borderWidth: 1, borderColor: "#219ebc30" }}>
+                    <View
+                      className="flex-row items-center mb-4 px-3 py-2 rounded-lg self-start"
+                      style={{
+                        backgroundColor: "#219ebc20",
+                        borderWidth: 1,
+                        borderColor: "#219ebc30",
+                      }}
+                    >
                       <ChatBubbleLeftEllipsisIcon size={14} color="#219ebc" />
-                      <Text className="ml-2 text-xs" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#219ebc" }}>
-                        {practiceObservation.conversationType.charAt(0).toUpperCase() + practiceObservation.conversationType.slice(1)}
+                      <Text
+                        className="ml-2 text-xs"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#219ebc",
+                        }}
+                      >
+                        {practiceObservation.conversationType
+                          .charAt(0)
+                          .toUpperCase() +
+                          practiceObservation.conversationType.slice(1)}
                       </Text>
                     </View>
                   )}
@@ -917,66 +1146,264 @@ export default function AnalysisScreen() {
                   {/* === AI SCORE BENTO GRID === */}
                   {/* Row 1: Pace + Confidence */}
                   <View className="flex-row gap-3 mb-3">
-                    <View className="flex-1 p-4 rounded-xl" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#219ebc25" }}>
+                    <View
+                      className="flex-1 p-4 rounded-xl"
+                      style={{
+                        backgroundColor: "#1a1a2e",
+                        borderWidth: 1,
+                        borderColor: "#219ebc25",
+                      }}
+                    >
                       <View className="flex-row items-center justify-between mb-1">
-                        <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Medium", color: "#8ecae6" }}>Pace</Text>
-                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#219ebc" }}>
+                        <Text
+                          className="text-xs"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Medium",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          Pace
+                        </Text>
+                        <View
+                          className="w-5 h-5 rounded-full items-center justify-center"
+                          style={{ backgroundColor: "#219ebc" }}
+                        >
                           <ArrowTrendingUpIcon size={10} color="#ffffff" />
                         </View>
                       </View>
-                      <Text className="text-3xl" style={{ fontFamily: "CabinetGrotesk-Bold", color: practiceObservation.pace >= 7 ? "#22c55e" : practiceObservation.pace >= 5 ? "#ffb703" : "#fb8500" }}>
-                        {practiceObservation.pace}<Text className="text-sm" style={{ color: "#8ecae680" }}>/10</Text>
+                      <Text
+                        className="text-3xl"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color:
+                            practiceObservation.pace >= 7
+                              ? "#22c55e"
+                              : practiceObservation.pace >= 5
+                                ? "#ffb703"
+                                : "#fb8500",
+                        }}
+                      >
+                        {practiceObservation.pace}
+                        <Text
+                          className="text-sm"
+                          style={{ color: "#8ecae680" }}
+                        >
+                          /10
+                        </Text>
                       </Text>
-                      <View className="mt-2 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#ffffff10" }}>
-                        <View className="h-full rounded-full" style={{ width: `${practiceObservation.pace * 10}%`, backgroundColor: practiceObservation.pace >= 7 ? "#22c55e" : practiceObservation.pace >= 5 ? "#ffb703" : "#fb8500" }} />
+                      <View
+                        className="mt-2 h-2 rounded-full overflow-hidden"
+                        style={{ backgroundColor: "#ffffff10" }}
+                      >
+                        <View
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${practiceObservation.pace * 10}%`,
+                            backgroundColor:
+                              practiceObservation.pace >= 7
+                                ? "#22c55e"
+                                : practiceObservation.pace >= 5
+                                  ? "#ffb703"
+                                  : "#fb8500",
+                          }}
+                        />
                       </View>
                     </View>
 
-                    <View className="flex-1 p-4 rounded-xl" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#fb850025" }}>
+                    <View
+                      className="flex-1 p-4 rounded-xl"
+                      style={{
+                        backgroundColor: "#1a1a2e",
+                        borderWidth: 1,
+                        borderColor: "#fb850025",
+                      }}
+                    >
                       <View className="flex-row items-center justify-between mb-1">
-                        <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Medium", color: "#8ecae6" }}>Confidence</Text>
-                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#fb8500" }}>
+                        <Text
+                          className="text-xs"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Medium",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          Confidence
+                        </Text>
+                        <View
+                          className="w-5 h-5 rounded-full items-center justify-center"
+                          style={{ backgroundColor: "#fb8500" }}
+                        >
                           <StarIcon size={10} color="#ffffff" />
                         </View>
                       </View>
-                      <Text className="text-3xl" style={{ fontFamily: "CabinetGrotesk-Bold", color: practiceObservation.confidence >= 7 ? "#22c55e" : practiceObservation.confidence >= 5 ? "#ffb703" : "#fb8500" }}>
-                        {practiceObservation.confidence}<Text className="text-sm" style={{ color: "#8ecae680" }}>/10</Text>
+                      <Text
+                        className="text-3xl"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color:
+                            practiceObservation.confidence >= 7
+                              ? "#22c55e"
+                              : practiceObservation.confidence >= 5
+                                ? "#ffb703"
+                                : "#fb8500",
+                        }}
+                      >
+                        {practiceObservation.confidence}
+                        <Text
+                          className="text-sm"
+                          style={{ color: "#8ecae680" }}
+                        >
+                          /10
+                        </Text>
                       </Text>
-                      <View className="mt-2 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#ffffff10" }}>
-                        <View className="h-full rounded-full" style={{ width: `${practiceObservation.confidence * 10}%`, backgroundColor: practiceObservation.confidence >= 7 ? "#22c55e" : practiceObservation.confidence >= 5 ? "#ffb703" : "#fb8500" }} />
+                      <View
+                        className="mt-2 h-2 rounded-full overflow-hidden"
+                        style={{ backgroundColor: "#ffffff10" }}
+                      >
+                        <View
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${practiceObservation.confidence * 10}%`,
+                            backgroundColor:
+                              practiceObservation.confidence >= 7
+                                ? "#22c55e"
+                                : practiceObservation.confidence >= 5
+                                  ? "#ffb703"
+                                  : "#fb8500",
+                          }}
+                        />
                       </View>
                     </View>
                   </View>
 
                   {/* Row 2: Clarity + Vocabulary Richness */}
                   <View className="flex-row gap-3 mb-3">
-                    <View className="flex-1 p-4 rounded-xl" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#8ecae625" }}>
+                    <View
+                      className="flex-1 p-4 rounded-xl"
+                      style={{
+                        backgroundColor: "#1a1a2e",
+                        borderWidth: 1,
+                        borderColor: "#8ecae625",
+                      }}
+                    >
                       <View className="flex-row items-center justify-between mb-1">
-                        <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Medium", color: "#8ecae6" }}>Clarity</Text>
-                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#8ecae6" }}>
+                        <Text
+                          className="text-xs"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Medium",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          Clarity
+                        </Text>
+                        <View
+                          className="w-5 h-5 rounded-full items-center justify-center"
+                          style={{ backgroundColor: "#8ecae6" }}
+                        >
                           <EyeIcon size={10} color="#023047" />
                         </View>
                       </View>
-                      <Text className="text-3xl" style={{ fontFamily: "CabinetGrotesk-Bold", color: (practiceObservation.clarity || 0) >= 7 ? "#22c55e" : (practiceObservation.clarity || 0) >= 5 ? "#ffb703" : "#fb8500" }}>
-                        {practiceObservation.clarity || "—"}<Text className="text-sm" style={{ color: "#8ecae680" }}>/10</Text>
+                      <Text
+                        className="text-3xl"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color:
+                            (practiceObservation.clarity || 0) >= 7
+                              ? "#22c55e"
+                              : (practiceObservation.clarity || 0) >= 5
+                                ? "#ffb703"
+                                : "#fb8500",
+                        }}
+                      >
+                        {practiceObservation.clarity || "—"}
+                        <Text
+                          className="text-sm"
+                          style={{ color: "#8ecae680" }}
+                        >
+                          /10
+                        </Text>
                       </Text>
-                      <View className="mt-2 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#ffffff10" }}>
-                        <View className="h-full rounded-full" style={{ width: `${(practiceObservation.clarity || 0) * 10}%`, backgroundColor: (practiceObservation.clarity || 0) >= 7 ? "#22c55e" : (practiceObservation.clarity || 0) >= 5 ? "#ffb703" : "#fb8500" }} />
+                      <View
+                        className="mt-2 h-2 rounded-full overflow-hidden"
+                        style={{ backgroundColor: "#ffffff10" }}
+                      >
+                        <View
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${(practiceObservation.clarity || 0) * 10}%`,
+                            backgroundColor:
+                              (practiceObservation.clarity || 0) >= 7
+                                ? "#22c55e"
+                                : (practiceObservation.clarity || 0) >= 5
+                                  ? "#ffb703"
+                                  : "#fb8500",
+                          }}
+                        />
                       </View>
                     </View>
 
-                    <View className="flex-1 p-4 rounded-xl" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#22c55e25" }}>
+                    <View
+                      className="flex-1 p-4 rounded-xl"
+                      style={{
+                        backgroundColor: "#1a1a2e",
+                        borderWidth: 1,
+                        borderColor: "#22c55e25",
+                      }}
+                    >
                       <View className="flex-row items-center justify-between mb-1">
-                        <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Medium", color: "#8ecae6" }}>Vocabulary</Text>
-                        <View className="w-5 h-5 rounded-full items-center justify-center" style={{ backgroundColor: "#22c55e" }}>
+                        <Text
+                          className="text-xs"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Medium",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          Vocabulary
+                        </Text>
+                        <View
+                          className="w-5 h-5 rounded-full items-center justify-center"
+                          style={{ backgroundColor: "#22c55e" }}
+                        >
                           <LanguageIcon size={10} color="#ffffff" />
                         </View>
                       </View>
-                      <Text className="text-3xl" style={{ fontFamily: "CabinetGrotesk-Bold", color: (practiceObservation.vocabularyRichness || 0) >= 7 ? "#22c55e" : (practiceObservation.vocabularyRichness || 0) >= 5 ? "#ffb703" : "#fb8500" }}>
-                        {practiceObservation.vocabularyRichness || "—"}<Text className="text-sm" style={{ color: "#8ecae680" }}>/10</Text>
+                      <Text
+                        className="text-3xl"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color:
+                            (practiceObservation.vocabularyRichness || 0) >= 7
+                              ? "#22c55e"
+                              : (practiceObservation.vocabularyRichness || 0) >=
+                                  5
+                                ? "#ffb703"
+                                : "#fb8500",
+                        }}
+                      >
+                        {practiceObservation.vocabularyRichness || "—"}
+                        <Text
+                          className="text-sm"
+                          style={{ color: "#8ecae680" }}
+                        >
+                          /10
+                        </Text>
                       </Text>
-                      <View className="mt-2 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#ffffff10" }}>
-                        <View className="h-full rounded-full" style={{ width: `${(practiceObservation.vocabularyRichness || 0) * 10}%`, backgroundColor: (practiceObservation.vocabularyRichness || 0) >= 7 ? "#22c55e" : (practiceObservation.vocabularyRichness || 0) >= 5 ? "#ffb703" : "#fb8500" }} />
+                      <View
+                        className="mt-2 h-2 rounded-full overflow-hidden"
+                        style={{ backgroundColor: "#ffffff10" }}
+                      >
+                        <View
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${(practiceObservation.vocabularyRichness || 0) * 10}%`,
+                            backgroundColor:
+                              (practiceObservation.vocabularyRichness || 0) >= 7
+                                ? "#22c55e"
+                                : (practiceObservation.vocabularyRichness ||
+                                      0) >= 5
+                                  ? "#ffb703"
+                                  : "#fb8500",
+                          }}
+                        />
                       </View>
                     </View>
                   </View>
@@ -984,37 +1411,89 @@ export default function AnalysisScreen() {
                   {/* Filler Words Breakdown - full width */}
                   {practiceObservation.fillerWords.length > 0 && (
                     <View className="mb-3">
-                      <FillerWordsDisplay fillerWords={practiceObservation.fillerWords} />
+                      <FillerWordsDisplay
+                        fillerWords={practiceObservation.fillerWords}
+                      />
                     </View>
                   )}
 
                   {/* === VOCABULARY BOOST — prominent card === */}
                   {practiceObservation.vocabularyBoost && (
-                    <View className="p-5 rounded-xl mb-3" style={{ backgroundColor: "#22c55e15", borderWidth: 1.5, borderColor: "#22c55e40" }}>
+                    <View
+                      className="p-5 rounded-xl mb-3"
+                      style={{
+                        backgroundColor: "#22c55e15",
+                        borderWidth: 1.5,
+                        borderColor: "#22c55e40",
+                      }}
+                    >
                       <View className="flex-row items-center mb-3">
-                        <View className="w-8 h-8 rounded-full items-center justify-center" style={{ backgroundColor: "#22c55e" }}>
+                        <View
+                          className="w-8 h-8 rounded-full items-center justify-center"
+                          style={{ backgroundColor: "#22c55e" }}
+                        >
                           <BookOpenIcon size={16} color="#ffffff" />
                         </View>
                         <View className="ml-3">
-                          <Text className="text-sm" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#22c55e" }}>
+                          <Text
+                            className="text-sm"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#22c55e",
+                            }}
+                          >
                             Level Up Your Vocab
                           </Text>
-                          <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}>
+                          <Text
+                            className="text-xs"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Light",
+                              color: "#8ecae6",
+                            }}
+                          >
                             From communication science
                           </Text>
                         </View>
                       </View>
-                      <Text className="text-xl text-white mb-1" style={{ fontFamily: "CabinetGrotesk-Bold" }}>
+                      <Text
+                        className="text-xl text-white mb-1"
+                        style={{ fontFamily: "CabinetGrotesk-Bold" }}
+                      >
                         {practiceObservation.vocabularyBoost.word}
                       </Text>
-                      <Text className="text-sm mb-3 leading-5" style={{ fontFamily: "CabinetGrotesk-Regular", color: "#ffffff" }}>
+                      <Text
+                        className="text-sm mb-3 leading-5"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Regular",
+                          color: "#ffffff",
+                        }}
+                      >
                         {practiceObservation.vocabularyBoost.meaning}
                       </Text>
-                      <View className="p-3 rounded-lg" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#22c55e20" }}>
-                        <Text className="text-xs mb-1" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#22c55e" }}>
+                      <View
+                        className="p-3 rounded-lg"
+                        style={{
+                          backgroundColor: "#1a1a2e",
+                          borderWidth: 1,
+                          borderColor: "#22c55e20",
+                        }}
+                      >
+                        <Text
+                          className="text-xs mb-1"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#22c55e",
+                          }}
+                        >
                           Example:
                         </Text>
-                        <Text className="text-sm italic leading-5" style={{ fontFamily: "CabinetGrotesk-Regular", color: "#8ecae6" }}>
+                        <Text
+                          className="text-sm italic leading-5"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Regular",
+                            color: "#8ecae6",
+                          }}
+                        >
                           "{practiceObservation.vocabularyBoost.useInSentence}"
                         </Text>
                       </View>
@@ -1022,60 +1501,155 @@ export default function AnalysisScreen() {
                   )}
 
                   {/* Quick Tips */}
-                  {practiceObservation.quickTips && practiceObservation.quickTips.length > 0 && (
-                    <View className="p-4 rounded-xl mb-3" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#219ebc25" }}>
-                      <View className="flex-row items-center mb-3">
-                        <View className="w-7 h-7 rounded-full items-center justify-center" style={{ backgroundColor: "#219ebc" }}>
-                          <LightBulbIcon size={14} color="#ffffff" />
-                        </View>
-                        <Text className="ml-2 text-sm" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#219ebc" }}>
-                          Quick Tips
-                        </Text>
-                      </View>
-                      {practiceObservation.quickTips.map((tip, i) => (
-                        <View key={i} className="flex-row items-start mb-2">
-                          <View className="w-5 h-5 rounded-full items-center justify-center mt-0.5 mr-2" style={{ backgroundColor: "#219ebc30" }}>
-                            <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#219ebc" }}>
-                              {i + 1}
-                            </Text>
+                  {practiceObservation.quickTips &&
+                    practiceObservation.quickTips.length > 0 && (
+                      <View
+                        className="p-4 rounded-xl mb-3"
+                        style={{
+                          backgroundColor: "#1a1a2e",
+                          borderWidth: 1,
+                          borderColor: "#219ebc25",
+                        }}
+                      >
+                        <View className="flex-row items-center mb-3">
+                          <View
+                            className="w-7 h-7 rounded-full items-center justify-center"
+                            style={{ backgroundColor: "#219ebc" }}
+                          >
+                            <LightBulbIcon size={14} color="#ffffff" />
                           </View>
-                          <Text className="flex-1 text-sm leading-5" style={{ fontFamily: "CabinetGrotesk-Regular", color: "#ffffff" }}>
-                            {tip}
+                          <Text
+                            className="ml-2 text-sm"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#219ebc",
+                            }}
+                          >
+                            Quick Tips
                           </Text>
                         </View>
-                      ))}
-                    </View>
-                  )}
+                        {practiceObservation.quickTips.map((tip, i) => (
+                          <View key={i} className="flex-row items-start mb-2">
+                            <View
+                              className="w-5 h-5 rounded-full items-center justify-center mt-0.5 mr-2"
+                              style={{ backgroundColor: "#219ebc30" }}
+                            >
+                              <Text
+                                className="text-xs"
+                                style={{
+                                  fontFamily: "CabinetGrotesk-Bold",
+                                  color: "#219ebc",
+                                }}
+                              >
+                                {i + 1}
+                              </Text>
+                            </View>
+                            <Text
+                              className="flex-1 text-sm leading-5"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Regular",
+                                color: "#ffffff",
+                              }}
+                            >
+                              {tip}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
 
                   {/* Speaker Insight - TED talk technique */}
                   {practiceObservation.speakerInsight && (
-                    <View className="p-4 rounded-xl mb-3" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#ffb70330" }}>
+                    <View
+                      className="p-4 rounded-xl mb-3"
+                      style={{
+                        backgroundColor: "#1a1a2e",
+                        borderWidth: 1,
+                        borderColor: "#ffb70330",
+                      }}
+                    >
                       <View className="flex-row items-center mb-3">
-                        <View className="w-7 h-7 rounded-full items-center justify-center" style={{ backgroundColor: "#ffb703" }}>
+                        <View
+                          className="w-7 h-7 rounded-full items-center justify-center"
+                          style={{ backgroundColor: "#ffb703" }}
+                        >
                           <AcademicCapIcon size={14} color="#023047" />
                         </View>
-                        <Text className="ml-2 text-sm" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffb703" }}>
+                        <Text
+                          className="ml-2 text-sm"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#ffb703",
+                          }}
+                        >
                           Learn from the Pros
                         </Text>
                       </View>
-                      <Text className="text-sm mb-3" style={{ fontFamily: "CabinetGrotesk-Medium", color: "#ffffff" }}>
-                        {practiceObservation.speakerInsight.speaker} — <Text style={{ color: "#8ecae6" }}>{practiceObservation.speakerInsight.technique}</Text>
+                      <Text
+                        className="text-sm mb-3"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Medium",
+                          color: "#ffffff",
+                        }}
+                      >
+                        {practiceObservation.speakerInsight.speaker} —{" "}
+                        <Text style={{ color: "#8ecae6" }}>
+                          {practiceObservation.speakerInsight.technique}
+                        </Text>
                       </Text>
 
-                      <View className="p-3 rounded-lg mb-2" style={{ backgroundColor: "#fb850015", borderWidth: 1, borderColor: "#fb850020" }}>
-                        <Text className="text-xs mb-1" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#fb8500" }}>
+                      <View
+                        className="p-3 rounded-lg mb-2"
+                        style={{
+                          backgroundColor: "#fb850015",
+                          borderWidth: 1,
+                          borderColor: "#fb850020",
+                        }}
+                      >
+                        <Text
+                          className="text-xs mb-1"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#fb8500",
+                          }}
+                        >
                           You said:
                         </Text>
-                        <Text className="text-sm leading-5" style={{ fontFamily: "CabinetGrotesk-Regular", color: "#ffffff" }}>
+                        <Text
+                          className="text-sm leading-5"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Regular",
+                            color: "#ffffff",
+                          }}
+                        >
                           "{practiceObservation.speakerInsight.originalLine}"
                         </Text>
                       </View>
 
-                      <View className="p-3 rounded-lg" style={{ backgroundColor: "#22c55e15", borderWidth: 1, borderColor: "#22c55e20" }}>
-                        <Text className="text-xs mb-1" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#22c55e" }}>
+                      <View
+                        className="p-3 rounded-lg"
+                        style={{
+                          backgroundColor: "#22c55e15",
+                          borderWidth: 1,
+                          borderColor: "#22c55e20",
+                        }}
+                      >
+                        <Text
+                          className="text-xs mb-1"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#22c55e",
+                          }}
+                        >
                           Try this instead:
                         </Text>
-                        <Text className="text-sm leading-5" style={{ fontFamily: "CabinetGrotesk-Regular", color: "#ffffff" }}>
+                        <Text
+                          className="text-sm leading-5"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Regular",
+                            color: "#ffffff",
+                          }}
+                        >
                           "{practiceObservation.speakerInsight.improvedLine}"
                         </Text>
                       </View>
@@ -1083,9 +1657,18 @@ export default function AnalysisScreen() {
                   )}
 
                   {/* Learning indicator */}
-                  <View className="flex-row items-center mt-3 pt-3 border-t" style={{ borderColor: "#034569" }}>
+                  <View
+                    className="flex-row items-center mt-3 pt-3 border-t"
+                    style={{ borderColor: "#034569" }}
+                  >
                     <SparklesIcon size={14} color="#ffb703" />
-                    <Text className="ml-2 text-xs flex-1" style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}>
+                    <Text
+                      className="ml-2 text-xs flex-1"
+                      style={{
+                        fontFamily: "CabinetGrotesk-Light",
+                        color: "#8ecae6",
+                      }}
+                    >
                       This data is saved to personalize your future sessions
                     </Text>
                   </View>
@@ -1093,15 +1676,18 @@ export default function AnalysisScreen() {
               )}
 
               {/* Fallback: Get AI Feedback button when nothing loaded */}
-              {!practiceObservation && !isAnalyzingWithAI && !aiError && displayTranscription && (
-                <View className="mt-2">
-                  <Button
-                    title="Get AI Feedback"
-                    onPress={handleRetryAI}
-                    icon={<SparklesIcon size={20} color="#023047" />}
-                  />
-                </View>
-              )}
+              {!practiceObservation &&
+                !isAnalyzingWithAI &&
+                !aiError &&
+                displayTranscription && (
+                  <View className="mt-2">
+                    <Button
+                      title="Get AI Feedback"
+                      onPress={handleRetryAI}
+                      icon={<SparklesIcon size={20} color="#023047" />}
+                    />
+                  </View>
+                )}
 
               {/* Recurring Patterns & Improvement */}
               {(() => {
@@ -1114,30 +1700,83 @@ export default function AnalysisScreen() {
 
                 if (!hasFillers && !hasLowAreas && !hasTrend) return null;
 
-                const first = profile.scoreHistory[profile.scoreHistory.length - 1];
+                const first =
+                  profile.scoreHistory[profile.scoreHistory.length - 1];
                 const latest = profile.scoreHistory[0];
                 const trend = first && latest ? latest.score - first.score : 0;
 
                 return (
-                  <View className="p-4 rounded-xl mt-3" style={{ backgroundColor: "#1a1a2e", borderWidth: 1, borderColor: "#fb850030" }}>
+                  <View
+                    className="p-4 rounded-xl mt-3"
+                    style={{
+                      backgroundColor: "#1a1a2e",
+                      borderWidth: 1,
+                      borderColor: "#fb850030",
+                    }}
+                  >
                     <View className="flex-row items-center mb-3">
-                      <View className="w-7 h-7 rounded-full items-center justify-center" style={{ backgroundColor: "#fb8500" }}>
+                      <View
+                        className="w-7 h-7 rounded-full items-center justify-center"
+                        style={{ backgroundColor: "#fb8500" }}
+                      >
                         <ArrowTrendingUpIcon size={14} color="#ffffff" />
                       </View>
-                      <Text className="ml-2 text-sm" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#fb8500" }}>
+                      <Text
+                        className="ml-2 text-sm"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#fb8500",
+                        }}
+                      >
                         Your Patterns ({profile.totalSessions} sessions)
                       </Text>
                     </View>
 
                     {/* Score trend */}
                     {hasTrend && first && latest && (
-                      <View className="p-3 rounded-lg mb-3" style={{ backgroundColor: trend > 0 ? "#22c55e15" : trend < 0 ? "#fb850015" : "#8ecae615" }}>
+                      <View
+                        className="p-3 rounded-lg mb-3"
+                        style={{
+                          backgroundColor:
+                            trend > 0
+                              ? "#22c55e15"
+                              : trend < 0
+                                ? "#fb850015"
+                                : "#8ecae615",
+                        }}
+                      >
                         <View className="flex-row items-center">
-                          <Text className="text-lg mr-2" style={{ fontFamily: "CabinetGrotesk-Bold", color: trend > 0 ? "#22c55e" : trend < 0 ? "#fb8500" : "#8ecae6" }}>
+                          <Text
+                            className="text-lg mr-2"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color:
+                                trend > 0
+                                  ? "#22c55e"
+                                  : trend < 0
+                                    ? "#fb8500"
+                                    : "#8ecae6",
+                            }}
+                          >
                             {first.score}/10 → {latest.score}/10
                           </Text>
-                          <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Medium", color: trend > 0 ? "#22c55e" : trend < 0 ? "#fb8500" : "#8ecae6" }}>
-                            {trend > 0 ? `+${trend} improvement!` : trend < 0 ? `${trend} decline` : "Steady"}
+                          <Text
+                            className="text-xs"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Medium",
+                              color:
+                                trend > 0
+                                  ? "#22c55e"
+                                  : trend < 0
+                                    ? "#fb8500"
+                                    : "#8ecae6",
+                            }}
+                          >
+                            {trend > 0
+                              ? `+${trend} improvement!`
+                              : trend < 0
+                                ? `${trend} decline`
+                                : "Steady"}
                           </Text>
                         </View>
                       </View>
@@ -1146,16 +1785,42 @@ export default function AnalysisScreen() {
                     {/* Recurring filler words */}
                     {hasFillers && (
                       <View className="mb-3">
-                        <Text className="text-xs mb-2" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffb703" }}>
+                        <Text
+                          className="text-xs mb-2"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#ffb703",
+                          }}
+                        >
                           Repeat Offender Fillers
                         </Text>
                         <View className="flex-row flex-wrap gap-2">
                           {profile.topFillerWords.slice(0, 4).map((f) => (
-                            <View key={f.word} className="px-3 py-1.5 rounded-full flex-row items-center" style={{ backgroundColor: "#fb850020", borderWidth: 1, borderColor: "#fb850030" }}>
-                              <Text className="text-xs" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#fb8500" }}>
+                            <View
+                              key={f.word}
+                              className="px-3 py-1.5 rounded-full flex-row items-center"
+                              style={{
+                                backgroundColor: "#fb850020",
+                                borderWidth: 1,
+                                borderColor: "#fb850030",
+                              }}
+                            >
+                              <Text
+                                className="text-xs"
+                                style={{
+                                  fontFamily: "CabinetGrotesk-Bold",
+                                  color: "#fb8500",
+                                }}
+                              >
                                 "{f.word}"
                               </Text>
-                              <Text className="text-xs ml-1" style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}>
+                              <Text
+                                className="text-xs ml-1"
+                                style={{
+                                  fontFamily: "CabinetGrotesk-Light",
+                                  color: "#8ecae6",
+                                }}
+                              >
                                 {f.count}x total
                               </Text>
                             </View>
@@ -1167,20 +1832,53 @@ export default function AnalysisScreen() {
                     {/* Consistently low areas */}
                     {hasLowAreas && (
                       <View>
-                        <Text className="text-xs mb-2" style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffb703" }}>
+                        <Text
+                          className="text-xs mb-2"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#ffb703",
+                          }}
+                        >
                           Areas Needing Work
                         </Text>
                         {profile.lowAreas.map((area) => (
-                          <View key={area.area} className="flex-row items-center justify-between mb-2 p-2 rounded-lg" style={{ backgroundColor: "#ffffff08" }}>
-                            <Text className="text-sm" style={{ fontFamily: "CabinetGrotesk-Medium", color: "#ffffff" }}>
+                          <View
+                            key={area.area}
+                            className="flex-row items-center justify-between mb-2 p-2 rounded-lg"
+                            style={{ backgroundColor: "#ffffff08" }}
+                          >
+                            <Text
+                              className="text-sm"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Medium",
+                                color: "#ffffff",
+                              }}
+                            >
                               {area.area}
                             </Text>
                             <View className="flex-row items-center">
-                              <Text className="text-sm mr-2" style={{ fontFamily: "CabinetGrotesk-Bold", color: area.avgScore < 5 ? "#fb8500" : "#ffb703" }}>
+                              <Text
+                                className="text-sm mr-2"
+                                style={{
+                                  fontFamily: "CabinetGrotesk-Bold",
+                                  color:
+                                    area.avgScore < 5 ? "#fb8500" : "#ffb703",
+                                }}
+                              >
                                 avg {area.avgScore}/10
                               </Text>
-                              <View className="w-16 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#ffffff10" }}>
-                                <View className="h-full rounded-full" style={{ width: `${area.avgScore * 10}%`, backgroundColor: area.avgScore < 5 ? "#fb8500" : "#ffb703" }} />
+                              <View
+                                className="w-16 h-2 rounded-full overflow-hidden"
+                                style={{ backgroundColor: "#ffffff10" }}
+                              >
+                                <View
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: `${area.avgScore * 10}%`,
+                                    backgroundColor:
+                                      area.avgScore < 5 ? "#fb8500" : "#ffb703",
+                                  }}
+                                />
                               </View>
                             </View>
                           </View>
@@ -1195,209 +1893,185 @@ export default function AnalysisScreen() {
 
           {/* Analysis mode feedback card */}
           {session?.practiceMode !== "free" && (
-          <View className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary/20">
-            <View className="flex-row items-center mb-4">
-              <View
-                className="w-10 h-10 rounded-full items-center justify-center"
-                style={{ backgroundColor: "#ffb703" }}
-              >
-                <SparklesIcon size={20} color="#023047" />
-              </View>
-              <Text
-                className="text-lg text-white ml-3 flex-1"
-                style={{ fontFamily: "CabinetGrotesk-Bold" }}
-              >
-                AI Coach Feedback
-              </Text>
-              {aiFeedback && (
-                <TouchableOpacity
-                  onPress={handleReadAloud}
-                  className="p-2 rounded-full"
-                  style={{ backgroundColor: isSpeaking ? "#219ebc" : "#219ebc20" }}
-                  activeOpacity={0.7}
-                >
-                  <SpeakerWaveIcon size={18} color={isSpeaking ? "#ffffff" : "#219ebc"} />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {isAnalyzingWithAI && (
-              <View className="items-center py-4">
-                <LoadingSpinner message="Analyzing your speech..." />
-              </View>
-            )}
-
-            {aiError && !aiFeedback && (
-              <View
-                className="p-4 rounded-lg"
-                style={{ backgroundColor: "#fb850030" }}
-              >
-                <Text
-                  className="mb-2"
-                  style={{
-                    fontFamily: "CabinetGrotesk-Regular",
-                    color: "#fb8500",
-                  }}
-                >
-                  {aiError}
-                </Text>
-                <Button
-                  title="Retry AI Analysis"
-                  onPress={handleRetryAI}
-                  variant="secondary"
-                  size="small"
-                />
-              </View>
-            )}
-
-            {aiFeedback && (
-              <View>
-                {/* AI Score - Tappable to see all breakdowns */}
-                <TouchableOpacity
-                  className="flex-row justify-between mb-3 p-4 rounded-xl"
-                  style={{ backgroundColor: "#011627" }}
-                  onPress={() => handleScoreTap("Clarity")}
-                  activeOpacity={0.7}
-                >
-                  <View className="flex-1 items-center">
-                    <Text
-                      className="text-3xl"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Bold",
-                        color: "#ffb703",
-                      }}
-                    >
-                      {aiFeedback.overallScore}/10
-                    </Text>
-                    <Text
-                      className="text-xs"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Light",
-                        color: "#8ecae6",
-                      }}
-                    >
-                      Overall
-                    </Text>
-                  </View>
-                  <View
-                    className="flex-1 items-center border-l"
-                    style={{ borderColor: "#034569" }}
-                  >
-                    <Text
-                      className="text-xl"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Bold",
-                        color: "#219ebc",
-                      }}
-                    >
-                      {aiFeedback.clarity}/10
-                    </Text>
-                    <Text
-                      className="text-xs"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Light",
-                        color: "#8ecae6",
-                      }}
-                    >
-                      Clarity
-                    </Text>
-                  </View>
-                  <View
-                    className="flex-1 items-center border-l"
-                    style={{ borderColor: "#034569" }}
-                  >
-                    <Text
-                      className="text-xl"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Bold",
-                        color: "#8ecae6",
-                      }}
-                    >
-                      {aiFeedback.pace}/10
-                    </Text>
-                    <Text
-                      className="text-xs"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Light",
-                        color: "#8ecae6",
-                      }}
-                    >
-                      Pace
-                    </Text>
-                  </View>
-                  <View
-                    className="flex-1 items-center border-l"
-                    style={{ borderColor: "#034569" }}
-                  >
-                    <Text
-                      className="text-xl"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Bold",
-                        color: "#fb8500",
-                      }}
-                    >
-                      {aiFeedback.confidence}/10
-                    </Text>
-                    <Text
-                      className="text-xs"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Light",
-                        color: "#8ecae6",
-                      }}
-                    >
-                      Confidence
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                {/* Tap hint */}
-                {aiFeedback.scoreBreakdown &&
-                  aiFeedback.scoreBreakdown.length > 0 && (
-                    <Text
-                      className="text-xs text-center mb-3"
-                      style={{
-                        fontFamily: "CabinetGrotesk-Light",
-                        color: "#6bb8d4",
-                      }}
-                    >
-                      Tap scores to see full breakdown
-                    </Text>
-                  )}
-
-                {/* Summary */}
+            <View className="bg-background-card rounded-2xl p-5 mb-6 border border-secondary/20">
+              <View className="flex-row items-center mb-4">
                 <View
-                  className="p-4 rounded-lg mb-4"
-                  style={{ backgroundColor: "#219ebc20" }}
+                  className="w-10 h-10 rounded-full items-center justify-center"
+                  style={{ backgroundColor: "#ffb703" }}
+                >
+                  <SparklesIcon size={20} color="#023047" />
+                </View>
+                <Text
+                  className="text-lg text-white ml-3 flex-1"
+                  style={{ fontFamily: "CabinetGrotesk-Bold" }}
+                >
+                  AI Coach Feedback
+                </Text>
+                {aiFeedback && (
+                  <TouchableOpacity
+                    onPress={handleReadAloud}
+                    className="p-2 rounded-full"
+                    style={{
+                      backgroundColor: isSpeaking ? "#219ebc" : "#219ebc20",
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <SpeakerWaveIcon
+                      size={18}
+                      color={isSpeaking ? "#ffffff" : "#219ebc"}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {isAnalyzingWithAI && (
+                <View className="items-center py-4">
+                  <LoadingSpinner message="Analyzing your speech..." />
+                </View>
+              )}
+
+              {aiError && !aiFeedback && (
+                <View
+                  className="p-4 rounded-lg"
+                  style={{ backgroundColor: "#fb850030" }}
                 >
                   <Text
-                    className="leading-5"
+                    className="mb-2"
                     style={{
-                      fontFamily: "CabinetGrotesk-Light",
-                      color: "#8ecae6",
+                      fontFamily: "CabinetGrotesk-Regular",
+                      color: "#fb8500",
                     }}
                   >
-                    {aiFeedback.summary}
+                    {aiError}
                   </Text>
+                  <Button
+                    title="Retry AI Analysis"
+                    onPress={handleRetryAI}
+                    variant="secondary"
+                    size="small"
+                  />
                 </View>
+              )}
 
-                {/* Tone Analysis */}
-                {aiFeedback.toneAnalysis && (
-                  <View
-                    className="p-4 rounded-lg mb-4"
-                    style={{ backgroundColor: "#ffb70315" }}
+              {aiFeedback && (
+                <View>
+                  {/* AI Score - Tappable to see all breakdowns */}
+                  <TouchableOpacity
+                    className="flex-row justify-between mb-3 p-4 rounded-xl"
+                    style={{ backgroundColor: "#011627" }}
+                    onPress={() => handleScoreTap("Clarity")}
+                    activeOpacity={0.7}
                   >
-                    <View className="flex-row items-center mb-2">
-                      <SpeakerWaveIcon size={16} color="#ffb703" />
+                    <View className="flex-1 items-center">
                       <Text
-                        className="ml-2 text-sm"
+                        className="text-3xl"
                         style={{
                           fontFamily: "CabinetGrotesk-Bold",
                           color: "#ffb703",
                         }}
                       >
-                        Tone & Delivery
+                        {aiFeedback.overallScore}/10
+                      </Text>
+                      <Text
+                        className="text-xs"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Light",
+                          color: "#8ecae6",
+                        }}
+                      >
+                        Overall
                       </Text>
                     </View>
+                    <View
+                      className="flex-1 items-center border-l"
+                      style={{ borderColor: "#034569" }}
+                    >
+                      <Text
+                        className="text-xl"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#219ebc",
+                        }}
+                      >
+                        {aiFeedback.clarity}/10
+                      </Text>
+                      <Text
+                        className="text-xs"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Light",
+                          color: "#8ecae6",
+                        }}
+                      >
+                        Clarity
+                      </Text>
+                    </View>
+                    <View
+                      className="flex-1 items-center border-l"
+                      style={{ borderColor: "#034569" }}
+                    >
+                      <Text
+                        className="text-xl"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#8ecae6",
+                        }}
+                      >
+                        {aiFeedback.pace}/10
+                      </Text>
+                      <Text
+                        className="text-xs"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Light",
+                          color: "#8ecae6",
+                        }}
+                      >
+                        Pace
+                      </Text>
+                    </View>
+                    <View
+                      className="flex-1 items-center border-l"
+                      style={{ borderColor: "#034569" }}
+                    >
+                      <Text
+                        className="text-xl"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Bold",
+                          color: "#fb8500",
+                        }}
+                      >
+                        {aiFeedback.confidence}/10
+                      </Text>
+                      <Text
+                        className="text-xs"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Light",
+                          color: "#8ecae6",
+                        }}
+                      >
+                        Confidence
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Tap hint */}
+                  {aiFeedback.scoreBreakdown &&
+                    aiFeedback.scoreBreakdown.length > 0 && (
+                      <Text
+                        className="text-xs text-center mb-3"
+                        style={{
+                          fontFamily: "CabinetGrotesk-Light",
+                          color: "#6bb8d4",
+                        }}
+                      >
+                        Tap scores to see full breakdown
+                      </Text>
+                    )}
+
+                  {/* Summary */}
+                  <View
+                    className="p-4 rounded-lg mb-4"
+                    style={{ backgroundColor: "#219ebc20" }}
+                  >
                     <Text
                       className="leading-5"
                       style={{
@@ -1405,405 +2079,504 @@ export default function AnalysisScreen() {
                         color: "#8ecae6",
                       }}
                     >
-                      {aiFeedback.toneAnalysis}
+                      {aiFeedback.summary}
                     </Text>
                   </View>
-                )}
 
-                {/* Sentiment from AssemblyAI */}
-                {sentimentSummary && sentimentSummary.total > 0 && (
-                  <View
-                    className="p-4 rounded-lg mb-4"
-                    style={{ backgroundColor: "#011627" }}
-                  >
-                    <View className="flex-row items-center mb-3">
-                      <FaceSmileIcon size={16} color="#8ecae6" />
-                      <Text
-                        className="ml-2 text-sm"
-                        style={{
-                          fontFamily: "CabinetGrotesk-Bold",
-                          color: "#8ecae6",
-                        }}
-                      >
-                        Sentiment Breakdown
-                      </Text>
-                    </View>
-                    <View className="flex-row gap-3">
-                      <View
-                        className="flex-1 items-center py-2 rounded-lg"
-                        style={{ backgroundColor: "#22c55e20" }}
-                      >
-                        <Text
-                          style={{
-                            fontFamily: "CabinetGrotesk-Bold",
-                            color: "#22c55e",
-                            fontSize: 18,
-                          }}
-                        >
-                          {Math.round(
-                            (sentimentSummary.positive /
-                              sentimentSummary.total) *
-                              100,
-                          )}
-                          %
-                        </Text>
-                        <Text
-                          className="text-xs"
-                          style={{
-                            fontFamily: "CabinetGrotesk-Light",
-                            color: "#22c55e",
-                          }}
-                        >
-                          Positive
-                        </Text>
-                      </View>
-                      <View
-                        className="flex-1 items-center py-2 rounded-lg"
-                        style={{ backgroundColor: "#8ecae620" }}
-                      >
-                        <Text
-                          style={{
-                            fontFamily: "CabinetGrotesk-Bold",
-                            color: "#8ecae6",
-                            fontSize: 18,
-                          }}
-                        >
-                          {Math.round(
-                            (sentimentSummary.neutral /
-                              sentimentSummary.total) *
-                              100,
-                          )}
-                          %
-                        </Text>
-                        <Text
-                          className="text-xs"
-                          style={{
-                            fontFamily: "CabinetGrotesk-Light",
-                            color: "#8ecae6",
-                          }}
-                        >
-                          Neutral
-                        </Text>
-                      </View>
-                      <View
-                        className="flex-1 items-center py-2 rounded-lg"
-                        style={{ backgroundColor: "#fb850020" }}
-                      >
-                        <Text
-                          style={{
-                            fontFamily: "CabinetGrotesk-Bold",
-                            color: "#fb8500",
-                            fontSize: 18,
-                          }}
-                        >
-                          {Math.round(
-                            (sentimentSummary.negative /
-                              sentimentSummary.total) *
-                              100,
-                          )}
-                          %
-                        </Text>
-                        <Text
-                          className="text-xs"
-                          style={{
-                            fontFamily: "CabinetGrotesk-Light",
-                            color: "#fb8500",
-                          }}
-                        >
-                          Negative
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                )}
-
-                {/* Strengths & Improvements - stacked for readability */}
-                <View className="gap-3 mb-4">
-                  {/* Strengths */}
-                  {aiFeedback.strengths.length > 0 && (
-                    <View className="p-4 rounded-xl" style={{ backgroundColor: "#ffb70315", borderWidth: 1, borderColor: "#ffb70325" }}>
-                      <View className="flex-row items-center mb-3">
-                        <View className="w-7 h-7 rounded-full items-center justify-center" style={{ backgroundColor: "#ffb703" }}>
-                          <StarIcon size={14} color="#023047" />
-                        </View>
-                        <Text
-                          className="ml-2 text-sm"
-                          style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffb703" }}
-                        >
-                          What You Did Well
-                        </Text>
-                      </View>
-                      {aiFeedback.strengths.map((s, i) => (
-                        <View key={i} className="flex-row items-start mb-2">
-                          <Text
-                            className="text-sm mr-2"
-                            style={{ fontFamily: "CabinetGrotesk-Bold", color: "#ffb703" }}
-                          >
-                            {i + 1}.
-                          </Text>
-                          <Text
-                            className="flex-1 text-sm leading-5"
-                            style={{ fontFamily: "CabinetGrotesk-Regular", color: "#ffffff" }}
-                          >
-                            {s}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  )}
-
-                  {/* Areas to Improve */}
-                  {aiFeedback.improvements.length > 0 && (
-                    <View className="p-4 rounded-xl" style={{ backgroundColor: "#fb850015", borderWidth: 1, borderColor: "#fb850025" }}>
-                      <View className="flex-row items-center mb-3">
-                        <View className="w-7 h-7 rounded-full items-center justify-center" style={{ backgroundColor: "#fb8500" }}>
-                          <ArrowTrendingUpIcon size={14} color="#ffffff" />
-                        </View>
-                        <Text
-                          className="ml-2 text-sm"
-                          style={{ fontFamily: "CabinetGrotesk-Bold", color: "#fb8500" }}
-                        >
-                          Where to Improve
-                        </Text>
-                      </View>
-                      {aiFeedback.improvements.map((s, i) => (
-                        <View key={i} className="flex-row items-start mb-2">
-                          <Text
-                            className="text-sm mr-2"
-                            style={{ fontFamily: "CabinetGrotesk-Bold", color: "#fb8500" }}
-                          >
-                            {i + 1}.
-                          </Text>
-                          <Text
-                            className="flex-1 text-sm leading-5"
-                            style={{ fontFamily: "CabinetGrotesk-Regular", color: "#ffffff" }}
-                          >
-                            {s}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  )}
-                </View>
-
-                {/* Action Items */}
-                {aiFeedback.tips.length > 0 && (
-                  <View className="mb-4 p-3 rounded-xl" style={{ backgroundColor: "#219ebc10" }}>
-                    <View className="flex-row items-center mb-2">
-                      <LightBulbIcon size={14} color="#219ebc" />
-                      <Text
-                        className="ml-1 text-xs"
-                        style={{ fontFamily: "CabinetGrotesk-Bold", color: "#219ebc" }}
-                      >
-                        Try Next Time
-                      </Text>
-                    </View>
-                    {aiFeedback.tips.map((s, i) => (
-                      <View key={i} className="flex-row items-start mb-1">
-                        <Text
-                          className="text-xs mr-1"
-                          style={{ fontFamily: "CabinetGrotesk-Bold", color: "#219ebc" }}
-                        >
-                          {i + 1}.
-                        </Text>
-                        <Text
-                          className="flex-1 text-xs"
-                          style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
-                        >
-                          {s}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-
-                {/* Extended Transcript (for short speeches) */}
-                {aiFeedback.extendedTranscript && (
-                  <View
-                    className="mt-4 pt-4 border-t"
-                    style={{ borderColor: "#034569" }}
-                  >
-                    <View className="flex-row items-center mb-3">
-                      <DocumentTextIcon size={18} color="#22c55e" />
-                      <Text
-                        className="ml-2"
-                        style={{
-                          fontFamily: "CabinetGrotesk-Bold",
-                          color: "#22c55e",
-                        }}
-                      >
-                        Suggested Extended Version
-                      </Text>
-                    </View>
+                  {/* Tone Analysis */}
+                  {aiFeedback.toneAnalysis && (
                     <View
-                      className="p-4 rounded-lg"
-                      style={{ backgroundColor: "#22c55e10" }}
+                      className="p-4 rounded-lg mb-4"
+                      style={{ backgroundColor: "#ffb70315" }}
                     >
+                      <View className="flex-row items-center mb-2">
+                        <SpeakerWaveIcon size={16} color="#ffb703" />
+                        <Text
+                          className="ml-2 text-sm"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#ffb703",
+                          }}
+                        >
+                          Tone & Delivery
+                        </Text>
+                      </View>
                       <Text
-                        className="leading-6"
+                        className="leading-5"
                         style={{
                           fontFamily: "CabinetGrotesk-Light",
                           color: "#8ecae6",
                         }}
                       >
-                        {aiFeedback.extendedTranscript}
+                        {aiFeedback.toneAnalysis}
                       </Text>
                     </View>
-                  </View>
-                )}
+                  )}
 
-                {/* Sentence Suggestions */}
-                {aiFeedback.sentenceSuggestions &&
-                  aiFeedback.sentenceSuggestions.length > 0 && (
+                  {/* Sentiment from AssemblyAI */}
+                  {sentimentSummary && sentimentSummary.total > 0 && (
                     <View
-                      className="mt-4 pt-4 border-t"
-                      style={{ borderColor: "#034569" }}
+                      className="p-4 rounded-lg mb-4"
+                      style={{ backgroundColor: "#011627" }}
                     >
                       <View className="flex-row items-center mb-3">
-                        <PencilSquareIcon size={18} color="#8ecae6" />
+                        <FaceSmileIcon size={16} color="#8ecae6" />
                         <Text
-                          className="ml-2"
+                          className="ml-2 text-sm"
                           style={{
                             fontFamily: "CabinetGrotesk-Bold",
                             color: "#8ecae6",
                           }}
                         >
-                          Better Ways to Say It
+                          Sentiment Breakdown
                         </Text>
                       </View>
-                      {aiFeedback.sentenceSuggestions.map((suggestion, i) => (
+                      <View className="flex-row gap-3">
                         <View
-                          key={i}
-                          className="p-4 rounded-lg mb-3"
-                          style={{ backgroundColor: "#011627" }}
+                          className="flex-1 items-center py-2 rounded-lg"
+                          style={{ backgroundColor: "#22c55e20" }}
                         >
-                          <View className="flex-row items-center mb-2">
-                            <View
-                              className="px-2 py-1 rounded"
-                              style={{ backgroundColor: "#fb850030" }}
-                            >
-                              <Text
-                                className="text-xs"
-                                style={{
-                                  fontFamily: "CabinetGrotesk-Medium",
-                                  color: "#fb8500",
-                                }}
-                              >
-                                Original
-                              </Text>
-                            </View>
-                          </View>
                           <Text
-                            className="mb-3 italic"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#22c55e",
+                              fontSize: 18,
+                            }}
+                          >
+                            {Math.round(
+                              (sentimentSummary.positive /
+                                sentimentSummary.total) *
+                                100,
+                            )}
+                            %
+                          </Text>
+                          <Text
+                            className="text-xs"
                             style={{
                               fontFamily: "CabinetGrotesk-Light",
-                              color: "#6bb8d4",
+                              color: "#22c55e",
                             }}
                           >
-                            "{suggestion.original}"
+                            Positive
                           </Text>
-                          <View className="flex-row items-center mb-2">
-                            <View
-                              className="px-2 py-1 rounded"
-                              style={{ backgroundColor: "#ffb703" }}
-                            >
-                              <Text
-                                className="text-xs"
-                                style={{
-                                  fontFamily: "CabinetGrotesk-Medium",
-                                  color: "#023047",
-                                }}
-                              >
-                                Improved
-                              </Text>
-                            </View>
+                        </View>
+                        <View
+                          className="flex-1 items-center py-2 rounded-lg"
+                          style={{ backgroundColor: "#8ecae620" }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#8ecae6",
+                              fontSize: 18,
+                            }}
+                          >
+                            {Math.round(
+                              (sentimentSummary.neutral /
+                                sentimentSummary.total) *
+                                100,
+                            )}
+                            %
+                          </Text>
+                          <Text
+                            className="text-xs"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Light",
+                              color: "#8ecae6",
+                            }}
+                          >
+                            Neutral
+                          </Text>
+                        </View>
+                        <View
+                          className="flex-1 items-center py-2 rounded-lg"
+                          style={{ backgroundColor: "#fb850020" }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#fb8500",
+                              fontSize: 18,
+                            }}
+                          >
+                            {Math.round(
+                              (sentimentSummary.negative /
+                                sentimentSummary.total) *
+                                100,
+                            )}
+                            %
+                          </Text>
+                          <Text
+                            className="text-xs"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Light",
+                              color: "#fb8500",
+                            }}
+                          >
+                            Negative
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Strengths & Improvements - stacked for readability */}
+                  <View className="gap-3 mb-4">
+                    {/* Strengths */}
+                    {aiFeedback.strengths.length > 0 && (
+                      <View
+                        className="p-4 rounded-xl"
+                        style={{
+                          backgroundColor: "#ffb70315",
+                          borderWidth: 1,
+                          borderColor: "#ffb70325",
+                        }}
+                      >
+                        <View className="flex-row items-center mb-3">
+                          <View
+                            className="w-7 h-7 rounded-full items-center justify-center"
+                            style={{ backgroundColor: "#ffb703" }}
+                          >
+                            <StarIcon size={14} color="#023047" />
                           </View>
                           <Text
-                            className="mb-2"
+                            className="ml-2 text-sm"
                             style={{
-                              fontFamily: "CabinetGrotesk-Medium",
-                              color: "#ffffff",
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#ffb703",
                             }}
                           >
-                            "{suggestion.improved}"
+                            What You Did Well
                           </Text>
-                          <View className="flex-row items-start">
-                            <InformationCircleIcon size={14} color="#219ebc" />
+                        </View>
+                        {aiFeedback.strengths.map((s, i) => (
+                          <View key={i} className="flex-row items-start mb-2">
                             <Text
-                              className="text-xs ml-1 flex-1"
+                              className="text-sm mr-2"
                               style={{
-                                fontFamily: "CabinetGrotesk-Light",
-                                color: "#8ecae6",
+                                fontFamily: "CabinetGrotesk-Bold",
+                                color: "#ffb703",
                               }}
                             >
-                              {suggestion.reason}
+                              {i + 1}.
+                            </Text>
+                            <Text
+                              className="flex-1 text-sm leading-5"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Regular",
+                                color: "#ffffff",
+                              }}
+                            >
+                              {s}
                             </Text>
                           </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {/* Areas to Improve */}
+                    {aiFeedback.improvements.length > 0 && (
+                      <View
+                        className="p-4 rounded-xl"
+                        style={{
+                          backgroundColor: "#fb850015",
+                          borderWidth: 1,
+                          borderColor: "#fb850025",
+                        }}
+                      >
+                        <View className="flex-row items-center mb-3">
+                          <View
+                            className="w-7 h-7 rounded-full items-center justify-center"
+                            style={{ backgroundColor: "#fb8500" }}
+                          >
+                            <ArrowTrendingUpIcon size={14} color="#ffffff" />
+                          </View>
+                          <Text
+                            className="ml-2 text-sm"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#fb8500",
+                            }}
+                          >
+                            Where to Improve
+                          </Text>
+                        </View>
+                        {aiFeedback.improvements.map((s, i) => (
+                          <View key={i} className="flex-row items-start mb-2">
+                            <Text
+                              className="text-sm mr-2"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Bold",
+                                color: "#fb8500",
+                              }}
+                            >
+                              {i + 1}.
+                            </Text>
+                            <Text
+                              className="flex-1 text-sm leading-5"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Regular",
+                                color: "#ffffff",
+                              }}
+                            >
+                              {s}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Action Items */}
+                  {aiFeedback.tips.length > 0 && (
+                    <View
+                      className="mb-4 p-3 rounded-xl"
+                      style={{ backgroundColor: "#219ebc10" }}
+                    >
+                      <View className="flex-row items-center mb-2">
+                        <LightBulbIcon size={14} color="#219ebc" />
+                        <Text
+                          className="ml-1 text-xs"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#219ebc",
+                          }}
+                        >
+                          Try Next Time
+                        </Text>
+                      </View>
+                      {aiFeedback.tips.map((s, i) => (
+                        <View key={i} className="flex-row items-start mb-1">
+                          <Text
+                            className="text-xs mr-1"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#219ebc",
+                            }}
+                          >
+                            {i + 1}.
+                          </Text>
+                          <Text
+                            className="flex-1 text-xs"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Light",
+                              color: "#8ecae6",
+                            }}
+                          >
+                            {s}
+                          </Text>
                         </View>
                       ))}
                     </View>
                   )}
 
-                {/* Filler Words from AI */}
-                {aiFeedback.fillerWords.length > 0 && (
-                  <View
-                    className="mt-4 pt-4 border-t"
-                    style={{ borderColor: "#034569" }}
-                  >
-                    <FillerWordsDisplay fillerWords={aiFeedback.fillerWords} />
-                  </View>
-                )}
-
-                {/* Vocabulary Boost */}
-                {aiFeedback.vocabularyBoost && (
-                  <View
-                    className="mt-4 pt-4 border-t"
-                    style={{ borderColor: "#034569" }}
-                  >
-                    <View className="p-4 rounded-xl" style={{ backgroundColor: "#22c55e10" }}>
-                      <View className="flex-row items-center mb-2">
-                        <BookOpenIcon size={16} color="#22c55e" />
+                  {/* Extended Transcript (for short speeches) */}
+                  {aiFeedback.extendedTranscript && (
+                    <View
+                      className="mt-4 pt-4 border-t"
+                      style={{ borderColor: "#034569" }}
+                    >
+                      <View className="flex-row items-center mb-3">
+                        <DocumentTextIcon size={18} color="#22c55e" />
                         <Text
-                          className="ml-2 text-sm"
-                          style={{ fontFamily: "CabinetGrotesk-Bold", color: "#22c55e" }}
+                          className="ml-2"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Bold",
+                            color: "#22c55e",
+                          }}
                         >
-                          Level Up Your Vocab
+                          Suggested Extended Version
                         </Text>
                       </View>
-                      <Text
-                        className="text-lg text-white mb-1"
-                        style={{ fontFamily: "CabinetGrotesk-Bold" }}
+                      <View
+                        className="p-4 rounded-lg"
+                        style={{ backgroundColor: "#22c55e10" }}
                       >
-                        {aiFeedback.vocabularyBoost.word}
-                      </Text>
-                      <Text
-                        className="text-sm mb-2"
-                        style={{ fontFamily: "CabinetGrotesk-Light", color: "#8ecae6" }}
-                      >
-                        {aiFeedback.vocabularyBoost.meaning}
-                      </Text>
-                      <View className="p-3 rounded-lg" style={{ backgroundColor: "#22c55e08" }}>
                         <Text
-                          className="text-sm italic"
-                          style={{ fontFamily: "CabinetGrotesk-Light", color: "#6bb8d4" }}
+                          className="leading-6"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Light",
+                            color: "#8ecae6",
+                          }}
                         >
-                          "{aiFeedback.vocabularyBoost.useInSentence}"
+                          {aiFeedback.extendedTranscript}
                         </Text>
                       </View>
                     </View>
-                  </View>
-                )}
-              </View>
-            )}
+                  )}
 
-            {!aiFeedback && !isAnalyzingWithAI && !aiError && (
-              <Button
-                title="Get AI Feedback"
-                onPress={handleRetryAI}
-                icon={<SparklesIcon size={20} color="#023047" />}
-              />
-            )}
-          </View>
+                  {/* Sentence Suggestions */}
+                  {aiFeedback.sentenceSuggestions &&
+                    aiFeedback.sentenceSuggestions.length > 0 && (
+                      <View
+                        className="mt-4 pt-4 border-t"
+                        style={{ borderColor: "#034569" }}
+                      >
+                        <View className="flex-row items-center mb-3">
+                          <PencilSquareIcon size={18} color="#8ecae6" />
+                          <Text
+                            className="ml-2"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#8ecae6",
+                            }}
+                          >
+                            Better Ways to Say It
+                          </Text>
+                        </View>
+                        {aiFeedback.sentenceSuggestions.map((suggestion, i) => (
+                          <View
+                            key={i}
+                            className="p-4 rounded-lg mb-3"
+                            style={{ backgroundColor: "#011627" }}
+                          >
+                            <View className="flex-row items-center mb-2">
+                              <View
+                                className="px-2 py-1 rounded"
+                                style={{ backgroundColor: "#fb850030" }}
+                              >
+                                <Text
+                                  className="text-xs"
+                                  style={{
+                                    fontFamily: "CabinetGrotesk-Medium",
+                                    color: "#fb8500",
+                                  }}
+                                >
+                                  Original
+                                </Text>
+                              </View>
+                            </View>
+                            <Text
+                              className="mb-3 italic"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Light",
+                                color: "#6bb8d4",
+                              }}
+                            >
+                              "{suggestion.original}"
+                            </Text>
+                            <View className="flex-row items-center mb-2">
+                              <View
+                                className="px-2 py-1 rounded"
+                                style={{ backgroundColor: "#ffb703" }}
+                              >
+                                <Text
+                                  className="text-xs"
+                                  style={{
+                                    fontFamily: "CabinetGrotesk-Medium",
+                                    color: "#023047",
+                                  }}
+                                >
+                                  Improved
+                                </Text>
+                              </View>
+                            </View>
+                            <Text
+                              className="mb-2"
+                              style={{
+                                fontFamily: "CabinetGrotesk-Medium",
+                                color: "#ffffff",
+                              }}
+                            >
+                              "{suggestion.improved}"
+                            </Text>
+                            <View className="flex-row items-start">
+                              <InformationCircleIcon
+                                size={14}
+                                color="#219ebc"
+                              />
+                              <Text
+                                className="text-xs ml-1 flex-1"
+                                style={{
+                                  fontFamily: "CabinetGrotesk-Light",
+                                  color: "#8ecae6",
+                                }}
+                              >
+                                {suggestion.reason}
+                              </Text>
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                  {/* Filler Words from AI */}
+                  {aiFeedback.fillerWords.length > 0 && (
+                    <View
+                      className="mt-4 pt-4 border-t"
+                      style={{ borderColor: "#034569" }}
+                    >
+                      <FillerWordsDisplay
+                        fillerWords={aiFeedback.fillerWords}
+                      />
+                    </View>
+                  )}
+
+                  {/* Vocabulary Boost */}
+                  {aiFeedback.vocabularyBoost && (
+                    <View
+                      className="mt-4 pt-4 border-t"
+                      style={{ borderColor: "#034569" }}
+                    >
+                      <View
+                        className="p-4 rounded-xl"
+                        style={{ backgroundColor: "#22c55e10" }}
+                      >
+                        <View className="flex-row items-center mb-2">
+                          <BookOpenIcon size={16} color="#22c55e" />
+                          <Text
+                            className="ml-2 text-sm"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Bold",
+                              color: "#22c55e",
+                            }}
+                          >
+                            Level Up Your Vocab
+                          </Text>
+                        </View>
+                        <Text
+                          className="text-lg text-white mb-1"
+                          style={{ fontFamily: "CabinetGrotesk-Bold" }}
+                        >
+                          {aiFeedback.vocabularyBoost.word}
+                        </Text>
+                        <Text
+                          className="text-sm mb-2"
+                          style={{
+                            fontFamily: "CabinetGrotesk-Light",
+                            color: "#8ecae6",
+                          }}
+                        >
+                          {aiFeedback.vocabularyBoost.meaning}
+                        </Text>
+                        <View
+                          className="p-3 rounded-lg"
+                          style={{ backgroundColor: "#22c55e08" }}
+                        >
+                          <Text
+                            className="text-sm italic"
+                            style={{
+                              fontFamily: "CabinetGrotesk-Light",
+                              color: "#6bb8d4",
+                            }}
+                          >
+                            "{aiFeedback.vocabularyBoost.useInSentence}"
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {!aiFeedback && !isAnalyzingWithAI && !aiError && (
+                <Button
+                  title="Get AI Feedback"
+                  onPress={handleRetryAI}
+                  icon={<SparklesIcon size={20} color="#023047" />}
+                />
+              )}
+            </View>
           )}
 
           {/* Challenge Score (if applicable) */}
@@ -1859,90 +2632,96 @@ export default function AnalysisScreen() {
 
           {/* Metrics section - only show for non-practice mode (practice already shows stats in bento grid) */}
           {session?.practiceMode !== "free" && (
-          <View className="mt-6">
-            <View className="flex-row items-center mb-3">
-              <View className="w-1 h-5 rounded-full mr-2" style={{ backgroundColor: "#219ebc" }} />
-              <Text
-                className="text-lg text-white"
-                style={{ fontFamily: "CabinetGrotesk-Bold" }}
-              >
-                Metrics
-              </Text>
+            <View className="mt-6">
+              <View className="flex-row items-center mb-3">
+                <View
+                  className="w-1 h-5 rounded-full mr-2"
+                  style={{ backgroundColor: "#219ebc" }}
+                />
+                <Text
+                  className="text-lg text-white"
+                  style={{ fontFamily: "CabinetGrotesk-Bold" }}
+                >
+                  Metrics
+                </Text>
+              </View>
+
+              {/* Speaking Rate */}
+              <MetricsCard
+                title="Speaking Rate"
+                value={`${displayAnalysis.speakingRate.wordsPerMinute} WPM`}
+                subtitle={`Ideal: ${SPEAKING_RATE_CONFIG.IDEAL_MIN}-${SPEAKING_RATE_CONFIG.IDEAL_MAX} WPM`}
+                progress={Math.min(
+                  100,
+                  (displayAnalysis.speakingRate.wordsPerMinute / 180) * 100,
+                )}
+                progressColor={
+                  displayAnalysis.speakingRate.wordsPerMinute >=
+                    SPEAKING_RATE_CONFIG.IDEAL_MIN &&
+                  displayAnalysis.speakingRate.wordsPerMinute <=
+                    SPEAKING_RATE_CONFIG.IDEAL_MAX
+                    ? "green"
+                    : "yellow"
+                }
+              />
+
+              {/* Filler Words */}
+              <MetricsCard
+                title="Filler Words"
+                value={getTotalFillerCount(
+                  displayAnalysis.fillerWords,
+                ).toString()}
+                subtitle={
+                  displayAnalysis.fillerWords.length > 0
+                    ? `Most common: ${displayAnalysis.fillerWords
+                        .slice(0, 2)
+                        .map((f) => `"${f.word}"`)
+                        .join(", ")}`
+                    : "No filler words detected!"
+                }
+                progressColor={
+                  getTotalFillerCount(displayAnalysis.fillerWords) <= 3
+                    ? "green"
+                    : getTotalFillerCount(displayAnalysis.fillerWords) <= 10
+                      ? "yellow"
+                      : "red"
+                }
+              />
+
+              {/* Pauses */}
+              <MetricsCard
+                title="Long Pauses (>1s)"
+                value={displayAnalysis.pauseStats.count.toString()}
+                subtitle={
+                  displayAnalysis.pauseStats.count > 0
+                    ? `Avg duration: ${(displayAnalysis.pauseStats.averageDuration / 1000).toFixed(1)}s`
+                    : "Great flow!"
+                }
+                progressColor={
+                  displayAnalysis.pauseStats.count <= 3
+                    ? "green"
+                    : displayAnalysis.pauseStats.count <= 8
+                      ? "yellow"
+                      : "red"
+                }
+              />
+
+              {/* Total Words */}
+              <MetricsCard
+                title="Total Words"
+                value={displayAnalysis.speakingRate.totalWords.toString()}
+                subtitle={`Content words: ${displayAnalysis.speakingRate.contentWords}`}
+              />
             </View>
-
-            {/* Speaking Rate */}
-            <MetricsCard
-              title="Speaking Rate"
-              value={`${displayAnalysis.speakingRate.wordsPerMinute} WPM`}
-              subtitle={`Ideal: ${SPEAKING_RATE_CONFIG.IDEAL_MIN}-${SPEAKING_RATE_CONFIG.IDEAL_MAX} WPM`}
-              progress={Math.min(
-                100,
-                (displayAnalysis.speakingRate.wordsPerMinute / 180) * 100,
-              )}
-              progressColor={
-                displayAnalysis.speakingRate.wordsPerMinute >=
-                  SPEAKING_RATE_CONFIG.IDEAL_MIN &&
-                displayAnalysis.speakingRate.wordsPerMinute <=
-                  SPEAKING_RATE_CONFIG.IDEAL_MAX
-                  ? "green"
-                  : "yellow"
-              }
-            />
-
-            {/* Filler Words */}
-            <MetricsCard
-              title="Filler Words"
-              value={getTotalFillerCount(
-                displayAnalysis.fillerWords,
-              ).toString()}
-              subtitle={
-                displayAnalysis.fillerWords.length > 0
-                  ? `Most common: ${displayAnalysis.fillerWords
-                      .slice(0, 2)
-                      .map((f) => `"${f.word}"`)
-                      .join(", ")}`
-                  : "No filler words detected!"
-              }
-              progressColor={
-                getTotalFillerCount(displayAnalysis.fillerWords) <= 3
-                  ? "green"
-                  : getTotalFillerCount(displayAnalysis.fillerWords) <= 10
-                    ? "yellow"
-                    : "red"
-              }
-            />
-
-            {/* Pauses */}
-            <MetricsCard
-              title="Long Pauses (>1s)"
-              value={displayAnalysis.pauseStats.count.toString()}
-              subtitle={
-                displayAnalysis.pauseStats.count > 0
-                  ? `Avg duration: ${(displayAnalysis.pauseStats.averageDuration / 1000).toFixed(1)}s`
-                  : "Great flow!"
-              }
-              progressColor={
-                displayAnalysis.pauseStats.count <= 3
-                  ? "green"
-                  : displayAnalysis.pauseStats.count <= 8
-                    ? "yellow"
-                    : "red"
-              }
-            />
-
-            {/* Total Words */}
-            <MetricsCard
-              title="Total Words"
-              value={displayAnalysis.speakingRate.totalWords.toString()}
-              subtitle={`Content words: ${displayAnalysis.speakingRate.contentWords}`}
-            />
-          </View>
           )}
 
           {/* Transcript section with annotation */}
           <View className="mt-6">
             <View className="flex-row items-center mb-3">
-              <View className="w-1 h-5 rounded-full mr-2" style={{ backgroundColor: "#8ecae6" }} />
+              <View
+                className="w-1 h-5 rounded-full mr-2"
+                style={{ backgroundColor: "#8ecae6" }}
+              />
               <Text
                 className="text-lg text-white"
                 style={{ fontFamily: "CabinetGrotesk-Bold" }}
